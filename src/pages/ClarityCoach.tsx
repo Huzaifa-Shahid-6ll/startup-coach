@@ -17,25 +17,17 @@ interface Message {
   timestamp: Date;
 }
 
-interface UserData {
-  goal?: string;
-  blocks?: string;
-  skills?: string;
-}
-
 export default function ClarityCoach() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       type: 'assistant',
-      content: "Hi! I'm your Clarity Coach. I'm here to help you create a personalized action plan to achieve your goals. Let's start - what's your main goal or vision you'd like to work towards?",
+      content: "Hi! I'm your Mental Clarity Coach for entrepreneurs. I'm here to help you identify and overcome the mental roadblocks that are holding you back from starting or growing your startup.\n\nShare with me what's on your mind - what fears, doubts, or mental barriers are you facing as an entrepreneur? I'll help you work through them and create a personalized action plan.",
       timestamp: new Date()
     }
   ]);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [userData, setUserData] = useState<UserData>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -57,16 +49,45 @@ export default function ClarityCoach() {
     setMessages(prev => [...prev, newMessage]);
   };
 
-  const getNextQuestion = (step: number): string => {
-    switch (step) {
-      case 2:
-        return "Great! Now, what's currently blocking you or holding you back from achieving this goal?";
-      case 3:
-        return "I understand. Now tell me about your strengths - what skills, assets, or advantages do you have that can help you succeed?";
-      case 4:
-        return "Perfect! Let me create your personalized clarity plan based on everything you've shared. This will include a 7-day action plan, mindset advice, and productivity tips.";
-      default:
-        return "";
+  const analyzeRoadblocks = async (userMessage: string): Promise<string> => {
+    // Create a specialized prompt for mental roadblock analysis
+    const prompt = `As a mental clarity coach for entrepreneurs, analyze this startup founder's mental roadblocks and provide specific, actionable advice:
+
+"${userMessage}"
+
+Please provide:
+1. Identify the core mental barriers mentioned
+2. Offer 3-4 specific strategies to overcome these roadblocks
+3. Suggest one immediate action they can take today
+4. Provide encouraging perspective shift
+
+Keep the response conversational, empathetic, and focused on mental clarity for entrepreneurs.`;
+
+    try {
+      const plan = await generateClarityPlan(
+        "Overcome mental roadblocks to start/grow my startup",
+        userMessage,
+        "Entrepreneurial mindset and determination"
+      );
+
+      // Format the response in a more conversational way for mental coaching
+      let response = "I understand what you're going through. Let me help you work through these mental roadblocks:\n\n";
+      
+      response += "**🧠 What I'm hearing:** You're facing some common but significant mental barriers that many entrepreneurs struggle with.\n\n";
+      
+      response += "**💡 Strategies to overcome these roadblocks:**\n";
+      const strategies = plan.weeklyPlan.slice(0, 4).map(day => day.tasks[0]).join('\n• ');
+      response += `• ${strategies}\n\n`;
+      
+      response += `**🎯 One thing to do RIGHT NOW:** ${plan.weeklyPlan[0].tasks[0]}\n\n`;
+      
+      response += `**🌟 Mindset shift:** ${plan.mindsetAdvice}\n\n`;
+      
+      response += `**⚡ Remember:** ${plan.pepTalk}`;
+
+      return response;
+    } catch (error) {
+      return "I understand you're facing some mental roadblocks. This is completely normal for entrepreneurs! Here are some strategies that can help:\n\n• **Start small**: Break your big vision into tiny, manageable steps\n• **Challenge limiting beliefs**: Write down your fears and question their validity\n• **Connect with other founders**: Join entrepreneur communities for support\n• **Focus on learning**: View setbacks as valuable learning experiences\n\n**Take action today**: Write down one small step you can take in the next hour toward your startup goal.\n\n**Remember**: Every successful entrepreneur has faced these same doubts. The difference is they moved forward despite the fear. You have what it takes!";
     }
   };
 
@@ -79,66 +100,20 @@ export default function ClarityCoach() {
     setLoading(true);
 
     try {
-      // Store user data based on current step
-      const newUserData = { ...userData };
-      if (currentStep === 1) newUserData.goal = userMessage;
-      else if (currentStep === 2) newUserData.blocks = userMessage;
-      else if (currentStep === 3) newUserData.skills = userMessage;
+      // Analyze the user's roadblocks and provide personalized advice
+      const response = await analyzeRoadblocks(userMessage);
       
-      setUserData(newUserData);
-
-      if (currentStep < 3) {
-        // Ask next question
-        setTimeout(() => {
-          const nextQuestion = getNextQuestion(currentStep + 1);
-          addMessage(nextQuestion, 'assistant');
-          setCurrentStep(prev => prev + 1);
-          setLoading(false);
-        }, 1000);
-      } else {
-        // Generate plan
-        if (newUserData.goal && newUserData.blocks && newUserData.skills) {
-          const plan = await generateClarityPlan(
-            newUserData.goal,
-            newUserData.blocks,
-            newUserData.skills
-          );
-
-          // Format the plan as a conversational response
-          let planMessage = "Here's your personalized 7-day clarity plan:\n\n";
-          
-          plan.weeklyPlan.forEach((day, index) => {
-            planMessage += `**${day.day}:**\n`;
-            day.tasks.forEach(task => {
-              planMessage += `• ${task}\n`;
-            });
-            planMessage += "\n";
-          });
-
-          planMessage += `**💡 Mindset Advice:** ${plan.mindsetAdvice}\n\n`;
-          planMessage += `**⚡ Productivity Tip:** ${plan.productivityTip}\n\n`;
-          planMessage += `**🚀 Motivation Boost:** ${plan.pepTalk}`;
-
-          addMessage(planMessage, 'assistant');
-          
-          setTimeout(() => {
-            addMessage("Your plan is ready! You can always come back and chat with me again if you need adjustments or have questions about implementing these actions.", 'assistant');
-          }, 2000);
-
-          toast({
-            title: "Plan generated!",
-            description: "Your personalized clarity plan is ready.",
-          });
-        }
+      setTimeout(() => {
+        addMessage(response, 'assistant');
         setLoading(false);
-      }
+      }, 1500);
+
     } catch (error: any) {
       console.error('Chat error:', error);
-      addMessage("I apologize, but I'm having trouble generating your plan right now. Please make sure your API key is configured and try again.", 'assistant');
+      addMessage("I understand this is challenging. Let me offer some general guidance: Remember that fear and doubt are normal parts of the entrepreneurial journey. Start with one small action today, connect with other founders for support, and focus on progress over perfection. What specific fear or doubt would you like to work through first?", 'assistant');
       toast({
-        title: "Generation failed",
-        description: error.message || "Please try again",
-        variant: "destructive"
+        title: "Analysis in progress",
+        description: "I'm here to help you work through your mental roadblocks",
       });
       setLoading(false);
     }
@@ -174,9 +149,21 @@ export default function ClarityCoach() {
               </GradientButton>
               <h1 className="text-3xl md:text-5xl font-bold gradient-text flex items-center">
                 <Brain className="w-10 h-10 mr-3" />
-                Clarity Coach Chat
+                Mental Clarity Coach
               </h1>
             </div>
+          </motion.div>
+
+          {/* Subtitle */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-6"
+          >
+            <p className="text-lg text-gray-300 text-center">
+              Clear your mental roadblocks and unlock your entrepreneurial potential
+            </p>
           </motion.div>
 
           {/* Chat Container */}
@@ -206,7 +193,7 @@ export default function ClarityCoach() {
                         }`}>
                           {message.type === 'user' ? 
                             <User className="w-4 h-4 text-white" /> : 
-                            <Bot className="w-4 h-4 text-white" />
+                            <Brain className="w-4 h-4 text-white" />
                           }
                         </div>
                         
@@ -239,7 +226,7 @@ export default function ClarityCoach() {
                   >
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center">
-                        <Bot className="w-4 h-4 text-white" />
+                        <Brain className="w-4 h-4 text-white" />
                       </div>
                       <div className="bg-white/10 border border-white/20 rounded-2xl px-4 py-3">
                         <div className="flex space-x-1">
@@ -262,7 +249,7 @@ export default function ClarityCoach() {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Type your message..."
+                    placeholder="Share your fears, doubts, or mental barriers..."
                     className="flex-1 bg-white/5 border-white/10 text-white placeholder:text-gray-400"
                     disabled={loading}
                   />
@@ -275,22 +262,19 @@ export default function ClarityCoach() {
                   </GradientButton>
                 </div>
                 
-                {/* Progress indicator */}
-                <div className="mt-4 flex items-center justify-center space-x-2">
-                  {[1, 2, 3, 4].map((step) => (
-                    <div
-                      key={step}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        step <= currentStep
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-500'
-                          : 'bg-white/20'
-                      }`}
-                    />
+                {/* Helpful prompts */}
+                <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                  {["I'm afraid of failure", "I don't feel ready", "Imposter syndrome", "Fear of rejection"].map((prompt) => (
+                    <button
+                      key={prompt}
+                      onClick={() => setInputValue(prompt)}
+                      className="text-xs px-3 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-colors"
+                      disabled={loading}
+                    >
+                      {prompt}
+                    </button>
                   ))}
                 </div>
-                <p className="text-xs text-gray-400 text-center mt-2">
-                  Step {currentStep} of 4
-                </p>
               </div>
             </GlassmorphismCard>
           </motion.div>
