@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, ArrowLeft, Send, User, Bot, Lightbulb } from 'lucide-react';
@@ -52,19 +51,6 @@ export default function ClarityCoach() {
   };
 
   const analyzeRoadblocks = async (userMessage: string): Promise<{ content: string; isHtml: boolean }> => {
-    // Create a specialized prompt for mental roadblock analysis
-    const prompt = `As a mental clarity coach for entrepreneurs, analyze this startup founder's mental roadblocks and provide specific, actionable advice:
-
-"${userMessage}"
-
-Please provide:
-1. Identify the core mental barriers mentioned
-2. Offer 3-4 specific strategies to overcome these roadblocks
-3. Suggest one immediate action they can take today
-4. Provide encouraging perspective shift
-
-Keep the response conversational, empathetic, and focused on mental clarity for entrepreneurs.`;
-
     try {
       const plan = await generateClarityPlan(
         "Overcome mental roadblocks to start/grow my startup",
@@ -73,7 +59,7 @@ Keep the response conversational, empathetic, and focused on mental clarity for 
       );
 
       // Format the response with proper HTML for better readability
-      let response = `
+      const response = `
         <div class="space-y-4">
           <div class="flex items-start space-x-2">
             <span class="text-blue-400">🧠</span>
@@ -86,10 +72,8 @@ Keep the response conversational, empathetic, and focused on mental clarity for 
           <div class="flex items-start space-x-2">
             <span class="text-green-400">💡</span>
             <div>
-              <h4 class="font-semibold text-green-400 mb-2">Strategies to overcome these roadblocks:</h4>
-              <ul class="space-y-1 text-gray-100">
-                ${plan.weeklyPlan.slice(0, 4).map(day => `<li class="flex items-start"><span class="text-green-400 mr-2">•</span>${day.tasks[0]}</li>`).join('')}
-              </ul>
+              <h4 class="font-semibold text-green-400 mb-2">Personalized guidance:</h4>
+              <div class="text-gray-100">${plan.replace(/\n/g, '<br>')}</div>
             </div>
           </div>
           
@@ -97,15 +81,7 @@ Keep the response conversational, empathetic, and focused on mental clarity for 
             <span class="text-orange-400">🎯</span>
             <div>
               <h4 class="font-semibold text-orange-400 mb-1">One thing to do RIGHT NOW:</h4>
-              <p class="text-gray-100">${plan.weeklyPlan[0].tasks[0]}</p>
-            </div>
-          </div>
-          
-          <div class="flex items-start space-x-2">
-            <span class="text-purple-400">🌟</span>
-            <div>
-              <h4 class="font-semibold text-purple-400 mb-1">Mindset shift:</h4>
-              <p class="text-gray-100">${plan.mindsetAdvice}</p>
+              <p class="text-gray-100">Write down one small step you can take in the next hour toward your startup goal.</p>
             </div>
           </div>
           
@@ -113,7 +89,7 @@ Keep the response conversational, empathetic, and focused on mental clarity for 
             <span class="text-yellow-400">⚡</span>
             <div>
               <h4 class="font-semibold text-yellow-400 mb-1">Remember:</h4>
-              <p class="text-gray-100">${plan.pepTalk}</p>
+              <p class="text-gray-100">Every successful entrepreneur has faced these same doubts. The difference is they moved forward despite the fear. You have what it takes!</p>
             </div>
           </div>
         </div>
