@@ -99,7 +99,14 @@ export default function Index() {
   };
 
   const handleSaveIdea = async () => {
-    if (!analysis || !user) return;
+    if (!analysis || !user) {
+      toast({
+        title: "Cannot save idea",
+        description: "Please make sure you're signed in and have analyzed an idea",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const ideaTitle = ideaText.slice(0, 100) + (ideaText.length > 100 ? "..." : "");
     
@@ -122,9 +129,12 @@ export default function Index() {
       });
     } else {
       toast({
-        title: "Idea saved!",
+        title: "Idea saved! ✨",
         description: "Your analysis has been saved to your profile",
       });
+      // Clear the form after saving
+      setIdeaText("");
+      setAnalysis(null);
     }
   };
 
@@ -338,10 +348,12 @@ export default function Index() {
                 <h3 className="text-4xl font-bold gradient-text">Your AI Analysis</h3>
                 {user && (
                   <GradientButton 
-                    onClick={() => handleSaveIdea()}
+                    onClick={handleSaveIdea}
                     variant="success"
+                    className="flex items-center space-x-2"
                   >
-                    Save Idea
+                    <span>💾</span>
+                    <span>Save Idea</span>
                   </GradientButton>
                 )}
               </div>

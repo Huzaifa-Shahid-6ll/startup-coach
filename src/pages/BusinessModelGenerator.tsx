@@ -1,30 +1,38 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { DollarSign, ArrowLeft, Zap, Users, Target, TrendingUp } from 'lucide-react';
+import { ArrowLeft, DollarSign, Users, TrendingUp, Target, Lightbulb, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GlassmorphismCard } from '@/components/ui/glassmorphism-card';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/useAuth';
 import { generateBusinessModel, BusinessModelResponse } from '@/services/openrouter';
 import { toast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
 
 export default function BusinessModelGenerator() {
-  const [idea, setIdea] = useState("");
-  const [budget, setBudget] = useState("");
-  const [timeline, setTimeline] = useState("");
+  const [ideaText, setIdeaText] = useState("");
   const [businessModel, setBusinessModel] = useState<BusinessModelResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleGenerate = async () => {
-    if (!idea.trim()) {
+    if (!ideaText.trim()) {
       toast({
-        title: "Please describe your business idea",
-        description: "We need your business concept to generate a model",
+        title: "Please enter an idea",
+        description: "Describe your business idea to generate a model",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Please sign in",
+        description: "You need to be signed in to generate business models",
         variant: "destructive"
       });
       return;
@@ -33,7 +41,7 @@ export default function BusinessModelGenerator() {
     setLoading(true);
     
     try {
-      const result = await generateBusinessModel(idea, budget, timeline);
+      const result = await generateBusinessModel(ideaText);
       setBusinessModel(result);
       
       toast({
@@ -41,7 +49,7 @@ export default function BusinessModelGenerator() {
         description: "Your comprehensive business model is ready.",
       });
     } catch (error: any) {
-      console.error('Generation error:', error);
+      console.error('Business model generation error:', error);
       toast({
         title: "Generation failed",
         description: error.message || "Please try again",
@@ -64,92 +72,57 @@ export default function BusinessModelGenerator() {
             transition={{ duration: 0.6 }}
             className="flex items-center justify-between mb-12"
           >
-            <div className="flex items-center">
-              <GradientButton 
-                onClick={() => navigate('/')}
-                variant="secondary"
-                className="mr-6"
-              >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Back
+            <div className="flex items-center space-x-4">
+              <GradientButton onClick={() => navigate('/dashboard')} variant="secondary">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
               </GradientButton>
-              <h1 className="text-4xl md:text-6xl font-bold gradient-text flex items-center">
-                <DollarSign className="w-12 h-12 mr-4" />
+              <h1 className="text-4xl md:text-6xl font-bold gradient-text">
                 Business Model Generator
               </h1>
             </div>
           </motion.div>
 
-          {/* Input Form */}
+          {/* Input Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
             className="mb-12"
           >
-            <GlassmorphismCard className="p-8 md:p-12">
+            <GlassmorphismCard className="p-8">
               <div className="text-center mb-8">
-                <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">
+                <DollarSign className="w-16 h-16 text-green-400 mx-auto mb-4" />
+                <h2 className="text-3xl font-bold text-white mb-4">
                   Create Your Business Model
                 </h2>
                 <p className="text-xl text-gray-300">
-                  Generate a complete business model tailored to your idea and constraints
+                  Transform your idea into a comprehensive business strategy
                 </p>
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-lg font-semibold text-white mb-3">
-                    Business Idea Description
-                  </label>
-                  <Textarea
-                    placeholder="Describe your business idea in detail... (e.g., 'A subscription-based meal planning app for busy professionals')"
-                    value={idea}
-                    onChange={(e) => setIdea(e.target.value)}
-                    className="gradient-input min-h-32 text-lg"
-                  />
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-lg font-semibold text-white mb-3">
-                      Available Budget (Optional)
-                    </label>
-                    <Input
-                      placeholder="e.g., $5,000 or bootstrapped"
-                      value={budget}
-                      onChange={(e) => setBudget(e.target.value)}
-                      className="gradient-input text-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-lg font-semibold text-white mb-3">
-                      Launch Timeline (Optional)
-                    </label>
-                    <Input
-                      placeholder="e.g., 3 months or ASAP"
-                      value={timeline}
-                      onChange={(e) => setTimeline(e.target.value)}
-                      className="gradient-input text-lg"
-                    />
-                  </div>
-                </div>
+              <div className="space-y-6 max-w-2xl mx-auto">
+                <Textarea
+                  placeholder="Describe your business idea in detail..."
+                  value={ideaText}
+                  onChange={(e) => setIdeaText(e.target.value)}
+                  className="gradient-input min-h-32 text-lg"
+                />
                 
                 <GradientButton
                   onClick={handleGenerate}
                   loading={loading}
-                  disabled={!idea.trim() || loading}
-                  className="w-full"
+                  disabled={!ideaText.trim() || loading}
+                  className="w-full py-4 text-lg"
                   size="lg"
                 >
-                  {loading ? "Generating Business Model..." : "Generate My Business Model"}
+                  {loading ? "Generating Model..." : "Generate Business Model"}
                 </GradientButton>
               </div>
             </GlassmorphismCard>
           </motion.div>
 
-          {/* Results */}
+          {/* Results Section */}
           {businessModel && (
             <motion.div 
               className="space-y-8"
@@ -157,129 +130,154 @@ export default function BusinessModelGenerator() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              {/* Overview */}
-              <GlassmorphismCard gradient>
-                <h3 className="text-3xl font-bold gradient-text mb-6">Business Model Overview</h3>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="text-xl font-semibold text-white mb-3">Value Proposition</h4>
-                    <p className="text-gray-300 leading-relaxed">{businessModel.valueProposition}</p>
+              <h3 className="text-4xl font-bold gradient-text text-center mb-12">Your Business Model</h3>
+
+              {/* Value Proposition & Target Customer */}
+              <div className="grid md:grid-cols-2 gap-8">
+                <GlassmorphismCard>
+                  <div className="p-6">
+                    <div className="flex items-center mb-4">
+                      <Target className="w-6 h-6 text-blue-400 mr-3" />
+                      <h4 className="text-2xl font-bold text-white">Value Proposition</h4>
+                    </div>
+                    <p className="text-gray-300 leading-relaxed">{businessModel.value_proposition}</p>
                   </div>
-                  <div>
-                    <h4 className="text-xl font-semibold text-white mb-3">Target Customer</h4>
-                    <p className="text-gray-300 leading-relaxed">{businessModel.targetCustomer}</p>
+                </GlassmorphismCard>
+
+                <GlassmorphismCard>
+                  <div className="p-6">
+                    <div className="flex items-center mb-4">
+                      <Users className="w-6 h-6 text-purple-400 mr-3" />
+                      <h4 className="text-2xl font-bold text-white">Target Customer</h4>
+                    </div>
+                    <p className="text-gray-300 leading-relaxed">{businessModel.target_customer}</p>
                   </div>
-                </div>
-              </GlassmorphismCard>
+                </GlassmorphismCard>
+              </div>
 
               {/* Revenue Streams */}
-              <GlassmorphismCard className="border-green-500/30">
-                <h3 className="text-green-400 text-2xl font-bold flex items-center mb-6">
-                  <DollarSign className="w-6 h-6 mr-3" />
-                  Revenue Streams
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {businessModel.revenueStreams.map((stream, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="p-4 bg-gradient-to-r from-green-600/20 to-teal-600/20 rounded-xl border border-white/10"
-                    >
-                      <h5 className="text-white font-semibold mb-2">{stream.name}</h5>
-                      <p className="text-gray-300 text-sm mb-2">{stream.description}</p>
-                      <Badge variant="outline" className="text-green-300 border-green-400/50">
-                        {stream.potential}
-                      </Badge>
-                    </motion.div>
-                  ))}
+              <GlassmorphismCard>
+                <div className="p-6">
+                  <div className="flex items-center mb-6">
+                    <DollarSign className="w-6 h-6 text-green-400 mr-3" />
+                    <h4 className="text-2xl font-bold text-white">Revenue Streams</h4>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {businessModel.revenue_streams?.map((stream: string, index: number) => (
+                      <div key={index} className="flex items-start space-x-3">
+                        <CheckCircle className="w-5 h-5 text-green-400 mt-1 flex-shrink-0" />
+                        <p className="text-gray-300">{stream}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </GlassmorphismCard>
 
               {/* Cost Structure */}
-              <GlassmorphismCard className="border-red-500/30">
-                <h3 className="text-red-400 text-2xl font-bold flex items-center mb-6">
-                  <Target className="w-6 h-6 mr-3" />
-                  Cost Structure
-                </h3>
-                <div className="grid md:grid-cols-3 gap-4">
-                  {businessModel.costStructure.map((cost, index) => (
-                    <div key={index} className="p-4 bg-red-600/10 rounded-lg border border-red-500/20">
-                      <h5 className="text-red-300 font-semibold mb-2">{cost.category}</h5>
-                      <p className="text-gray-300 text-sm">{cost.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </GlassmorphismCard>
-
-              {/* Marketing Strategy */}
-              <GlassmorphismCard className="border-blue-500/30">
-                <h3 className="text-blue-400 text-2xl font-bold flex items-center mb-6">
-                  <TrendingUp className="w-6 h-6 mr-3" />
-                  Marketing & Customer Acquisition
-                </h3>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="text-white font-semibold mb-3">Marketing Channels</h4>
-                    <ul className="space-y-2">
-                      {businessModel.marketingChannels.map((channel, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="w-2 h-2 bg-blue-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                          <span className="text-gray-300">{channel}</span>
-                        </li>
-                      ))}
-                    </ul>
+              <GlassmorphismCard>
+                <div className="p-6">
+                  <div className="flex items-center mb-6">
+                    <TrendingUp className="w-6 h-6 text-red-400 mr-3" />
+                    <h4 className="text-2xl font-bold text-white">Cost Structure</h4>
                   </div>
-                  <div>
-                    <h4 className="text-white font-semibold mb-3">Customer Acquisition Strategy</h4>
-                    <p className="text-gray-300 leading-relaxed">{businessModel.customerAcquisition}</p>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {businessModel.cost_structure?.map((cost: string, index: number) => (
+                      <div key={index} className="flex items-start space-x-3">
+                        <span className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                          {index + 1}
+                        </span>
+                        <p className="text-gray-300">{cost}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </GlassmorphismCard>
 
-              {/* Implementation Roadmap */}
-              <GlassmorphismCard className="border-purple-500/30">
-                <h3 className="text-purple-400 text-2xl font-bold flex items-center mb-6">
-                  <Zap className="w-6 h-6 mr-3" />
-                  Implementation Roadmap
-                </h3>
-                <div className="space-y-4">
-                  {businessModel.implementationSteps.map((step, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-start p-4 bg-purple-600/10 rounded-lg border border-purple-500/20"
-                    >
-                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0">
-                        {index + 1}
+              {/* Marketing Channels */}
+              <GlassmorphismCard>
+                <div className="p-6">
+                  <div className="flex items-center mb-6">
+                    <Lightbulb className="w-6 h-6 text-yellow-400 mr-3" />
+                    <h4 className="text-2xl font-bold text-white">Marketing Channels</h4>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    {businessModel.marketing_channels?.map((channel: string, index: number) => (
+                      <Badge key={index} variant="secondary" className="bg-yellow-500/20 text-yellow-300 border-yellow-400/30">
+                        {channel}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </GlassmorphismCard>
+
+              {/* Customer Acquisition */}
+              <GlassmorphismCard>
+                <div className="p-6">
+                  <div className="flex items-center mb-4">
+                    <Users className="w-6 h-6 text-cyan-400 mr-3" />
+                    <h4 className="text-2xl font-bold text-white">Customer Acquisition Strategy</h4>
+                  </div>
+                  <p className="text-gray-300 leading-relaxed">{businessModel.customer_acquisition}</p>
+                </div>
+              </GlassmorphismCard>
+
+              {/* Implementation Steps */}
+              <GlassmorphismCard>
+                <div className="p-6">
+                  <div className="flex items-center mb-6">
+                    <CheckCircle className="w-6 h-6 text-blue-400 mr-3" />
+                    <h4 className="text-2xl font-bold text-white">Implementation Steps</h4>
+                  </div>
+                  <div className="space-y-4">
+                    {businessModel.implementation_steps?.map((step: string, index: number) => (
+                      <div key={index} className="flex items-start space-x-4">
+                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-gray-300">{step}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h5 className="text-white font-semibold mb-1">{step.phase}</h5>
-                        <p className="text-gray-300 text-sm mb-2">{step.description}</p>
-                        <Badge variant="outline" className="text-purple-300 border-purple-400/50 text-xs">
-                          {step.timeframe}
-                        </Badge>
-                      </div>
-                    </motion.div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </GlassmorphismCard>
 
               {/* Key Metrics */}
-              <GlassmorphismCard gradient>
-                <h3 className="text-2xl font-bold gradient-text mb-6">Key Success Metrics</h3>
-                <div className="grid md:grid-cols-3 gap-4">
-                  {businessModel.keyMetrics.map((metric, index) => (
-                    <div key={index} className="text-center p-4 bg-white/5 rounded-lg">
-                      <h5 className="text-white font-semibold mb-2">{metric.name}</h5>
-                      <p className="text-gray-400 text-sm">{metric.description}</p>
-                    </div>
-                  ))}
+              <GlassmorphismCard>
+                <div className="p-6">
+                  <div className="flex items-center mb-6">
+                    <Target className="w-6 h-6 text-green-400 mr-3" />
+                    <h4 className="text-2xl font-bold text-white">Key Metrics to Track</h4>
+                  </div>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {businessModel.key_metrics?.map((metric: string, index: number) => (
+                      <div key={index} className="bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-lg p-4 border border-green-400/30">
+                        <p className="text-green-300 font-medium">{metric}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </GlassmorphismCard>
+
+              {/* Action Buttons */}
+              <div className="text-center pt-8">
+                <div className="flex flex-col md:flex-row gap-4 justify-center">
+                  <GradientButton 
+                    onClick={() => setIdeaText("")}
+                    variant="secondary"
+                    className="px-8 py-3"
+                  >
+                    Generate Another Model
+                  </GradientButton>
+                  <GradientButton 
+                    onClick={() => navigate('/dashboard')}
+                    className="px-8 py-3"
+                  >
+                    Back to Dashboard
+                  </GradientButton>
+                </div>
+              </div>
             </motion.div>
           )}
         </div>
