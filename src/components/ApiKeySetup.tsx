@@ -18,10 +18,11 @@ export const ApiKeySetup = ({ onApiKeySet }: ApiKeySetupProps) => {
 
   const handleSaveApiKey = () => {
     if (apiKey.trim()) {
+      // Save to localStorage with the exact key name that getApiKey() checks for
       localStorage.setItem('VITE_OPENROUTER_API_KEY', apiKey.trim());
       toast({
         title: "API Key Saved! 🔑",
-        description: "Your OpenRouter API key has been saved locally.",
+        description: "Your OpenRouter API key has been saved locally and will persist across sessions.",
       });
       onApiKeySet();
     } else {

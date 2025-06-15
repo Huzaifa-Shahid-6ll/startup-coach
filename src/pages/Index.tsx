@@ -30,13 +30,30 @@ export default function Index() {
 
   useEffect(() => {
     const checkApiKey = () => {
+      // Check both environment variable and localStorage
       const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || localStorage.getItem('VITE_OPENROUTER_API_KEY');
       setHasApiKey(!!apiKey);
     };
     
+    // Check immediately
     checkApiKey();
+    
+    // Check periodically to catch when user adds the key
     const interval = setInterval(checkApiKey, 1000);
-    return () => clearInterval(interval);
+    
+    // Also listen for storage events to immediately detect when API key is added
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'VITE_OPENROUTER_API_KEY') {
+        checkApiKey();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const handleAnalyze = async () => {
