@@ -1,21 +1,24 @@
+
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { User, Lightbulb, Target, TrendingUp, DollarSign, Rocket, Brain, Users, BarChart3, LogOut } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useIdeas } from "@/hooks/useIdeas";
 import { AuthModal } from "@/components/AuthModal";
 import { SavedIdeas } from "@/components/SavedIdeas";
+import { GradientBackground } from "@/components/ui/gradient-background";
+import { GlassmorphismCard } from "@/components/ui/glassmorphism-card";
+import { GradientButton } from "@/components/ui/gradient-button";
+import { analyzeIdea, IdeaAnalysisResponse } from "@/services/openrouter";
 
 const Index = () => {
   const [idea, setIdea] = useState("");
-  const [analysis, setAnalysis] = useState<any>(null);
+  const [analysis, setAnalysis] = useState<IdeaAnalysisResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [showSavedIdeas, setShowSavedIdeas] = useState(false);
@@ -23,7 +26,7 @@ const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { saveIdea } = useIdeas();
 
-  const analyzeIdea = async () => {
+  const analyzeIdeaWithAI = async () => {
     if (!idea.trim()) {
       toast({
         title: "Please enter an idea",
@@ -45,24 +48,24 @@ const Index = () => {
 
     setLoading(true);
     
-    // Simulate AI analysis
-    setTimeout(() => {
-      const mockAnalysis = {
-        rating: Math.floor(Math.random() * 4) + 7, // 7-10 rating
-        swot: {
-          strengths: ["Unique market positioning", "Low barrier to entry", "High demand potential"],
-          weaknesses: ["Limited initial resources", "Competition from established players"],
-          opportunities: ["Growing market trend", "Digital transformation", "Remote work adoption"],
-          threats: ["Market saturation", "Economic downturn", "Technology disruption"]
-        },
-        niches: ["Content creators", "Small business owners", "Online educators", "Freelancers"],
-        products: ["Digital course", "Template pack", "Coaching program", "SaaS tool", "E-book"],
-        monetization: ["Subscription model", "One-time purchase", "Freemium", "Affiliate marketing", "Consulting"],
-        mvp: "Start with a simple landing page and pre-sell your core offering to validate demand before building the full product."
-      };
-      setAnalysis(mockAnalysis);
+    try {
+      const result = await analyzeIdea(idea);
+      setAnalysis(result);
+      
+      toast({
+        title: "Analysis complete!",
+        description: "Your idea has been analyzed successfully.",
+      });
+    } catch (error: any) {
+      console.error('Analysis error:', error);
+      toast({
+        title: "Analysis failed",
+        description: error.message || "Please try again",
+        variant: "destructive"
+      });
+    } finally {
       setLoading(false);
-    }, 2000);
+    }
   };
 
   const handleSaveIdea = async () => {
@@ -97,383 +100,433 @@ const Index = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <GradientBackground />
+        <motion.div
+          className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-32 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute -bottom-40 -left-32 w-96 h-96 bg-blue-500/30 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
-      </div>
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      <GradientBackground />
 
       {/* Navigation */}
-      <nav className="relative z-10 flex items-center justify-between p-6">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-            <Lightbulb className="w-5 h-5 text-white" />
+      <motion.nav 
+        className="relative z-10 flex items-center justify-between p-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/25">
+            <Lightbulb className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold gradient-text">IdeaForgeAI</h1>
+          <h1 className="text-3xl font-bold gradient-text">IdeaForgeAI</h1>
         </div>
         <div className="flex items-center space-x-4">
           {user ? (
             <>
-              <Button 
-                variant="ghost" 
-                className="text-white hover:bg-white/10"
+              <GradientButton 
+                variant="secondary"
                 onClick={() => setShowSavedIdeas(!showSavedIdeas)}
               >
                 <User className="w-4 h-4 mr-2" />
                 My Ideas
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="text-white hover:bg-white/10"
+              </GradientButton>
+              <GradientButton 
+                variant="secondary"
                 onClick={signOut}
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
-              </Button>
+              </GradientButton>
             </>
           ) : (
-            <Button 
-              variant="ghost" 
-              className="text-white hover:bg-white/10"
+            <GradientButton 
+              variant="secondary"
               onClick={() => setAuthModalOpen(true)}
             >
               <User className="w-4 h-4 mr-2" />
               Sign In
-            </Button>
-          )}
-          {user && (
-            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 glow-effect">
-              Get Started
-            </Button>
+            </GradientButton>
           )}
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-6 py-12">
-        {showSavedIdeas && user ? (
-          <div className="max-w-4xl mx-auto">
-            <SavedIdeas />
-            <div className="mt-8 text-center">
-              <Button 
-                onClick={() => setShowSavedIdeas(false)}
-                variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
+        <AnimatePresence mode="wait">
+          {showSavedIdeas && user ? (
+            <motion.div 
+              key="saved-ideas"
+              className="max-w-4xl mx-auto"
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -100 }}
+              transition={{ duration: 0.5 }}
+            >
+              <SavedIdeas />
+              <div className="mt-8 text-center">
+                <GradientButton 
+                  onClick={() => setShowSavedIdeas(false)}
+                  variant="secondary"
+                >
+                  Back to Analysis
+                </GradientButton>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="main-content"
+              initial={{ opacity: 0, x: -100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 100 }}
+              transition={{ duration: 0.5 }}
+            >
+              {/* Hero Section */}
+              <motion.div 
+                className="text-center mb-16"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
               >
-                Back to Analysis
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="text-center mb-12 animate-fade-in">
-              <h2 className="text-5xl md:text-7xl font-bold mb-6 gradient-text leading-tight">
-                Transform Ideas Into
-                <span className="block">Digital Gold</span>
-              </h2>
-              <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-                Get instant AI-powered analysis of your ideas with ratings, SWOT analysis, 
-                niche suggestions, and monetization strategies.
-              </p>
-            </div>
+                <h2 className="text-6xl md:text-8xl font-bold mb-8 leading-tight">
+                  <span className="gradient-text text-glow">Transform Ideas Into</span>
+                  <br />
+                  <span className="gradient-text text-glow">Digital Gold</span>
+                </h2>
+                <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                  Get instant AI-powered analysis of your ideas with ratings, SWOT analysis, 
+                  niche suggestions, and monetization strategies powered by advanced AI.
+                </p>
+              </motion.div>
 
-            {/* Idea Input Section */}
-            <div className="max-w-4xl mx-auto mb-12 animate-scale-in">
-              <Card className="glass-card border-white/20 glow-effect">
-                <CardHeader>
-                  <CardTitle className="text-2xl gradient-text">Describe Your Idea</CardTitle>
-                  <CardDescription className="text-gray-300">
-                    Tell us about your idea, skill, or concept you want to develop
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Textarea
-                    placeholder="I have an idea for a productivity app that helps remote workers..."
-                    value={idea}
-                    onChange={(e) => setIdea(e.target.value)}
-                    className="min-h-[120px] bg-white/5 border-white/20 text-white placeholder:text-gray-400 text-lg"
-                  />
-                  <Button 
-                    onClick={analyzeIdea} 
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-lg py-6 glow-effect"
+              {/* Idea Input Section */}
+              <motion.div 
+                className="max-w-4xl mx-auto mb-16"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                <GlassmorphismCard gradient>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-3xl font-bold gradient-text mb-2">Describe Your Idea</h3>
+                      <p className="text-gray-300 text-lg">
+                        Tell us about your idea, skill, or concept you want to develop
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <Textarea
+                        placeholder="I have an idea for a productivity app that helps remote workers manage their time better..."
+                        value={idea}
+                        onChange={(e) => setIdea(e.target.value)}
+                        className="min-h-[150px] gradient-input text-lg resize-none"
+                      />
+                      
+                      <GradientButton 
+                        onClick={analyzeIdeaWithAI} 
+                        loading={loading}
+                        className="w-full"
+                        size="lg"
+                      >
+                        {loading ? (
+                          "Analyzing Your Idea..."
+                        ) : (
+                          <>
+                            <Brain className="w-5 h-5 mr-2" />
+                            Analyze My Idea with AI
+                          </>
+                        )}
+                      </GradientButton>
+                    </div>
+                  </div>
+                </GlassmorphismCard>
+              </motion.div>
+
+              {/* Analysis Results */}
+              <AnimatePresence>
+                {analysis && (
+                  <motion.div 
+                    className="max-w-6xl mx-auto"
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
                   >
-                    {loading ? (
-                      <div className="flex items-center">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                        Analyzing Your Idea...
-                      </div>
-                    ) : (
-                      <>
-                        <Brain className="w-5 h-5 mr-2" />
-                        Analyze My Idea
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+                    <div className="flex justify-between items-center mb-8">
+                      <h3 className="text-4xl font-bold gradient-text">Your AI Analysis</h3>
+                      {user && (
+                        <GradientButton 
+                          onClick={handleSaveIdea}
+                          variant="success"
+                        >
+                          Save Idea
+                        </GradientButton>
+                      )}
+                    </div>
 
-            {/* Analysis Results */}
-            {analysis && (
-              <div className="max-w-6xl mx-auto animate-fade-in">
-                <div className="flex justify-between items-center mb-8">
-                  <h3 className="text-3xl font-bold gradient-text">Your Idea Analysis</h3>
-                  {user && (
-                    <Button 
-                      onClick={handleSaveIdea}
-                      className="bg-green-600 hover:bg-green-700 glow-effect"
+                    {/* Rating Card */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5 }}
+                      className="mb-8"
                     >
-                      Save Idea
-                    </Button>
-                  )}
-                </div>
+                      <GlassmorphismCard gradient>
+                        <div className="text-center">
+                          <h4 className="text-2xl font-bold gradient-text mb-4 flex items-center justify-center">
+                            <TrendingUp className="w-6 h-6 mr-3" />
+                            AI Idea Rating
+                          </h4>
+                          <div className="flex items-center justify-center space-x-8">
+                            <div className="text-8xl font-bold gradient-text text-glow">
+                              {analysis.rating}/10
+                            </div>
+                            <div className="flex-1 max-w-md">
+                              <Progress value={analysis.rating * 10} className="h-4 mb-4" />
+                              <p className="text-gray-300 text-lg">
+                                {analysis.rating >= 8 ? "🚀 Excellent potential!" : 
+                                 analysis.rating >= 6 ? "💡 Good foundation with room for improvement" : 
+                                 "🔧 Needs refinement"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </GlassmorphismCard>
+                    </motion.div>
 
-                {/* Rating Card */}
-                <Card className="glass-card border-white/20 mb-6">
-                  <CardHeader>
-                    <CardTitle className="flex items-center text-2xl gradient-text">
-                      <TrendingUp className="w-6 h-6 mr-3" />
-                      Idea Rating
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-6xl font-bold gradient-text">
-                        {analysis.rating}/10
-                      </div>
-                      <div className="flex-1">
-                        <Progress value={analysis.rating * 10} className="h-3 mb-2" />
-                        <p className="text-gray-300">
-                          {analysis.rating >= 8 ? "Excellent potential!" : 
-                           analysis.rating >= 6 ? "Good foundation with room for improvement" : 
-                           "Needs refinement"}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Tabs defaultValue="swot" className="space-y-6">
-                  <TabsList className="grid w-full grid-cols-4 bg-white/10 rounded-xl p-2">
-                    <TabsTrigger value="swot" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                      SWOT Analysis
-                    </TabsTrigger>
-                    <TabsTrigger value="niches" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                      Niche Ideas
-                    </TabsTrigger>
-                    <TabsTrigger value="products" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                      Digital Products
-                    </TabsTrigger>
-                    <TabsTrigger value="monetization" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                      Monetization
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="swot">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <Card className="glass-card border-green-500/30">
-                        <CardHeader>
-                          <CardTitle className="text-green-400 flex items-center">
-                            <Target className="w-5 h-5 mr-2" />
-                            Strengths
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2">
-                            {analysis.swot.strengths.map((item: string, index: number) => (
-                              <li key={index} className="flex items-start">
-                                <span className="w-2 h-2 bg-green-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                                <span className="text-gray-300">{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="glass-card border-red-500/30">
-                        <CardHeader>
-                          <CardTitle className="text-red-400 flex items-center">
-                            <Target className="w-5 h-5 mr-2" />
-                            Weaknesses
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2">
-                            {analysis.swot.weaknesses.map((item: string, index: number) => (
-                              <li key={index} className="flex items-start">
-                                <span className="w-2 h-2 bg-red-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                                <span className="text-gray-300">{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="glass-card border-blue-500/30">
-                        <CardHeader>
-                          <CardTitle className="text-blue-400 flex items-center">
-                            <TrendingUp className="w-5 h-5 mr-2" />
-                            Opportunities
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2">
-                            {analysis.swot.opportunities.map((item: string, index: number) => (
-                              <li key={index} className="flex items-start">
-                                <span className="w-2 h-2 bg-blue-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                                <span className="text-gray-300">{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="glass-card border-yellow-500/30">
-                        <CardHeader>
-                          <CardTitle className="text-yellow-400 flex items-center">
-                            <BarChart3 className="w-5 h-5 mr-2" />
-                            Threats
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2">
-                            {analysis.swot.threats.map((item: string, index: number) => (
-                              <li key={index} className="flex items-start">
-                                <span className="w-2 h-2 bg-yellow-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                                <span className="text-gray-300">{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="niches">
-                    <Card className="glass-card border-white/20">
-                      <CardHeader>
-                        <CardTitle className="gradient-text flex items-center">
-                          <Users className="w-6 h-6 mr-3" />
+                    <Tabs defaultValue="swot" className="space-y-8">
+                      <TabsList className="grid w-full grid-cols-4 bg-white/10 rounded-xl p-2 backdrop-blur-xl">
+                        <TabsTrigger value="swot" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg">
+                          SWOT Analysis
+                        </TabsTrigger>
+                        <TabsTrigger value="niches" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg">
                           Target Niches
-                        </CardTitle>
-                        <CardDescription className="text-gray-300">
-                          Specific audiences that would benefit from your idea
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          {analysis.niches.map((niche: string, index: number) => (
-                            <div key={index} className="p-4 bg-white/5 rounded-lg border border-white/10">
-                              <Badge variant="secondary" className="mb-2 bg-purple-600/20 text-purple-300">
-                                Niche #{index + 1}
-                              </Badge>
-                              <p className="text-white font-medium">{niche}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
+                        </TabsTrigger>
+                        <TabsTrigger value="products" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg">
+                          Digital Products
+                        </TabsTrigger>
+                        <TabsTrigger value="monetization" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-lg">
+                          Monetization
+                        </TabsTrigger>
+                      </TabsList>
 
-                  <TabsContent value="products">
-                    <Card className="glass-card border-white/20">
-                      <CardHeader>
-                        <CardTitle className="gradient-text flex items-center">
-                          <Rocket className="w-6 h-6 mr-3" />
-                          Digital Product Ideas
-                        </CardTitle>
-                        <CardDescription className="text-gray-300">
-                          Products you can create from your idea
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid md:grid-cols-3 gap-4">
-                          {analysis.products.map((product: string, index: number) => (
-                            <div key={index} className="p-4 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg border border-white/10 hover:border-purple-400/50 transition-colors">
-                              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center mb-3">
-                                <Lightbulb className="w-6 h-6 text-white" />
-                              </div>
-                              <h4 className="text-white font-semibold mb-2">{product}</h4>
-                              <p className="text-gray-400 text-sm">Perfect for monetizing your expertise</p>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
+                      <TabsContent value="swot">
+                        <div className="grid md:grid-cols-2 gap-6">
+                          {/* SWOT Cards */}
+                          <GlassmorphismCard className="border-green-500/30">
+                            <h4 className="text-green-400 text-xl font-bold flex items-center mb-4">
+                              <Target className="w-5 h-5 mr-2" />
+                              Strengths
+                            </h4>
+                            <ul className="space-y-3">
+                              {analysis.swot.strengths.map((item: string, index: number) => (
+                                <motion.li 
+                                  key={index} 
+                                  className="flex items-start"
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: index * 0.1 }}
+                                >
+                                  <span className="w-3 h-3 bg-green-400 rounded-full mt-1.5 mr-3 flex-shrink-0"></span>
+                                  <span className="text-gray-300">{item}</span>
+                                </motion.li>
+                              ))}
+                            </ul>
+                          </GlassmorphismCard>
 
-                  <TabsContent value="monetization">
-                    <div className="space-y-6">
-                      <Card className="glass-card border-white/20">
-                        <CardHeader>
-                          <CardTitle className="gradient-text flex items-center">
-                            <DollarSign className="w-6 h-6 mr-3" />
-                            Monetization Strategies
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
+                          <GlassmorphismCard className="border-red-500/30">
+                            <h4 className="text-red-400 text-xl font-bold flex items-center mb-4">
+                              <Target className="w-5 h-5 mr-2" />
+                              Weaknesses
+                            </h4>
+                            <ul className="space-y-3">
+                              {analysis.swot.weaknesses.map((item: string, index: number) => (
+                                <motion.li 
+                                  key={index} 
+                                  className="flex items-start"
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: index * 0.1 }}
+                                >
+                                  <span className="w-3 h-3 bg-red-400 rounded-full mt-1.5 mr-3 flex-shrink-0"></span>
+                                  <span className="text-gray-300">{item}</span>
+                                </motion.li>
+                              ))}
+                            </ul>
+                          </GlassmorphismCard>
+
+                          <GlassmorphismCard className="border-blue-500/30">
+                            <h4 className="text-blue-400 text-xl font-bold flex items-center mb-4">
+                              <TrendingUp className="w-5 h-5 mr-2" />
+                              Opportunities
+                            </h4>
+                            <ul className="space-y-3">
+                              {analysis.swot.opportunities.map((item: string, index: number) => (
+                                <motion.li 
+                                  key={index} 
+                                  className="flex items-start"
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: index * 0.1 }}
+                                >
+                                  <span className="w-3 h-3 bg-blue-400 rounded-full mt-1.5 mr-3 flex-shrink-0"></span>
+                                  <span className="text-gray-300">{item}</span>
+                                </motion.li>
+                              ))}
+                            </ul>
+                          </GlassmorphismCard>
+
+                          <GlassmorphismCard className="border-yellow-500/30">
+                            <h4 className="text-yellow-400 text-xl font-bold flex items-center mb-4">
+                              <BarChart3 className="w-5 h-5 mr-2" />
+                              Threats
+                            </h4>
+                            <ul className="space-y-3">
+                              {analysis.swot.threats.map((item: string, index: number) => (
+                                <motion.li 
+                                  key={index} 
+                                  className="flex items-start"
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: index * 0.1 }}
+                                >
+                                  <span className="w-3 h-3 bg-yellow-400 rounded-full mt-1.5 mr-3 flex-shrink-0"></span>
+                                  <span className="text-gray-300">{item}</span>
+                                </motion.li>
+                              ))}
+                            </ul>
+                          </GlassmorphismCard>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="niches">
+                        <GlassmorphismCard gradient>
+                          <h4 className="gradient-text text-2xl font-bold flex items-center mb-6">
+                            <Users className="w-6 h-6 mr-3" />
+                            Target Audiences
+                          </h4>
                           <div className="grid md:grid-cols-2 gap-4">
-                            {analysis.monetization.map((strategy: string, index: number) => (
-                              <div key={index} className="p-4 bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-lg border border-white/10">
-                                <Badge variant="outline" className="mb-2 border-green-400/50 text-green-300">
-                                  Strategy #{index + 1}
+                            {analysis.niches.map((niche: string, index: number) => (
+                              <motion.div 
+                                key={index} 
+                                className="p-6 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-xl border border-white/10 hover:border-purple-400/50 transition-all duration-300"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                whileHover={{ scale: 1.02, y: -5 }}
+                              >
+                                <Badge variant="secondary" className="mb-3 bg-purple-600/30 text-purple-300">
+                                  Niche #{index + 1}
                                 </Badge>
-                                <p className="text-white font-medium">{strategy}</p>
-                              </div>
+                                <p className="text-white font-medium text-lg">{niche}</p>
+                              </motion.div>
                             ))}
                           </div>
-                        </CardContent>
-                      </Card>
+                        </GlassmorphismCard>
+                      </TabsContent>
 
-                      <Card className="glass-card border-orange-500/30">
-                        <CardHeader>
-                          <CardTitle className="text-orange-400 flex items-center">
+                      <TabsContent value="products">
+                        <GlassmorphismCard gradient>
+                          <h4 className="gradient-text text-2xl font-bold flex items-center mb-6">
                             <Rocket className="w-6 h-6 mr-3" />
-                            MVP Recommendation
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-gray-300 leading-relaxed text-lg">
-                            {analysis.mvp}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                            Digital Product Ideas
+                          </h4>
+                          <div className="grid md:grid-cols-3 gap-6">
+                            {analysis.products.map((product: string, index: number) => (
+                              <motion.div 
+                                key={index} 
+                                className="p-6 bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-xl border border-white/10 hover:border-cyan-400/50 transition-all duration-300 group"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: index * 0.1 }}
+                                whileHover={{ scale: 1.05, y: -10 }}
+                              >
+                                <div className="w-14 h-14 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mb-4 group-hover:shadow-lg group-hover:shadow-cyan-500/25 transition-all duration-300">
+                                  <Lightbulb className="w-7 h-7 text-white" />
+                                </div>
+                                <h5 className="text-white font-bold text-lg mb-2">{product}</h5>
+                                <p className="text-gray-400">Perfect for monetizing your expertise</p>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </GlassmorphismCard>
+                      </TabsContent>
 
-                {/* Action Buttons */}
-                <div className="mt-12 text-center space-y-4">
-                  <h4 className="text-2xl font-bold gradient-text mb-6">Ready to Take Action?</h4>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <Button className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 p-6 text-lg glow-effect">
-                      <Brain className="w-5 h-5 mr-2" />
-                      Clarity Coach Mode
-                    </Button>
-                    <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 p-6 text-lg glow-effect">
-                      <Users className="w-5 h-5 mr-2" />
-                      Niche Validation
-                    </Button>
-                    <Button className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 p-6 text-lg glow-effect">
-                      <DollarSign className="w-5 h-5 mr-2" />
-                      Business Model Generator
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
+                      <TabsContent value="monetization">
+                        <div className="space-y-8">
+                          <GlassmorphismCard gradient>
+                            <h4 className="gradient-text text-2xl font-bold flex items-center mb-6">
+                              <DollarSign className="w-6 h-6 mr-3" />
+                              Monetization Strategies
+                            </h4>
+                            <div className="grid md:grid-cols-2 gap-4">
+                              {analysis.monetization.map((strategy: string, index: number) => (
+                                <motion.div 
+                                  key={index} 
+                                  className="p-6 bg-gradient-to-r from-green-600/20 to-teal-600/20 rounded-xl border border-white/10 hover:border-green-400/50 transition-all duration-300"
+                                  initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: index * 0.1 }}
+                                  whileHover={{ scale: 1.02 }}
+                                >
+                                  <Badge variant="outline" className="mb-3 border-green-400/50 text-green-300">
+                                    Strategy #{index + 1}
+                                  </Badge>
+                                  <p className="text-white font-medium text-lg">{strategy}</p>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </GlassmorphismCard>
+
+                          <GlassmorphismCard className="border-orange-500/30">
+                            <h4 className="text-orange-400 text-2xl font-bold flex items-center mb-4">
+                              <Rocket className="w-6 h-6 mr-3" />
+                              MVP Recommendation
+                            </h4>
+                            <p className="text-gray-300 leading-relaxed text-lg">
+                              {analysis.mvp}
+                            </p>
+                          </GlassmorphismCard>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+
+                    {/* Action Buttons */}
+                    <motion.div 
+                      className="mt-16 text-center space-y-8"
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      <h4 className="text-3xl font-bold gradient-text mb-8">Ready to Take Action?</h4>
+                      <div className="grid md:grid-cols-3 gap-6">
+                        <GradientButton className="p-8 text-lg" variant="secondary">
+                          <Brain className="w-6 h-6 mr-3" />
+                          Clarity Coach Mode
+                        </GradientButton>
+                        <GradientButton className="p-8 text-lg" variant="primary">
+                          <Users className="w-6 h-6 mr-3" />
+                          Niche Validation
+                        </GradientButton>
+                        <GradientButton className="p-8 text-lg" variant="success">
+                          <DollarSign className="w-6 h-6 mr-3" />
+                          Business Model Generator
+                        </GradientButton>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />

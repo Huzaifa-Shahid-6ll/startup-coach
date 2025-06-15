@@ -41,7 +41,16 @@ export const useIdeas = () => {
     }
   };
 
-  const saveIdea = async (ideaData: Partial<Idea>) => {
+  const saveIdea = async (ideaData: {
+    title: string;
+    description: string;
+    rating?: number;
+    swot_analysis?: any;
+    niches?: any;
+    digital_products?: any;
+    monetization_paths?: any;
+    mvp_recommendation?: string;
+  }) => {
     if (!user) return;
 
     try {
