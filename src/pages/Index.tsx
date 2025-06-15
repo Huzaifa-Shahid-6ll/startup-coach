@@ -1,11 +1,14 @@
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Lightbulb, TrendingUp, Users, DollarSign, Target } from 'lucide-react';
+import { Sparkles, Lightbulb, TrendingUp, Users, DollarSign, Target, BarChart3, Rocket, Brain } from 'lucide-react';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GlassmorphismCard } from '@/components/ui/glassmorphism-card';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AuthModal } from '@/components/AuthModal';
 import { SavedIdeas } from '@/components/SavedIdeas';
 import { ApiKeySetup } from '@/components/ApiKeySetup';
@@ -18,7 +21,7 @@ export default function Index() {
   const [ideaText, setIdeaText] = useState("");
   const [analysis, setAnalysis] = useState<IdeaAnalysisResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [authModalOpen, setShowAuthModal] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [showSavedIdeas, setShowSavedIdeas] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
 
@@ -53,7 +56,7 @@ export default function Index() {
         description: "You need to be signed in to analyze ideas",
         variant: "destructive"
       });
-      setShowAuthModal(true);
+      setAuthModalOpen(true);
       return;
     }
 
@@ -443,7 +446,7 @@ export default function Index() {
             </div>
 
             <GradientButton
-              onClick={() => setShowAuthModal(true)}
+              onClick={() => setAuthModalOpen(true)}
               size="lg"
               className="px-12 py-6 text-xl"
             >
@@ -453,7 +456,7 @@ export default function Index() {
           </motion.div>
         </div>
 
-        <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
+        <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
       </>
     );
   }
