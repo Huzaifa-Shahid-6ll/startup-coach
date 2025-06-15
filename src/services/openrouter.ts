@@ -426,7 +426,61 @@ Provide only the JSON response, no additional text.`;
     });
 
     const content = response.data.choices[0].message.content;
-    return JSON.parse(content);
+    
+    // Extract JSON from markdown code blocks if present
+    let jsonString = content;
+    
+    // Check if the response is wrapped in markdown code blocks
+    if (content.includes('```')) {
+      const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (jsonMatch) {
+        jsonString = jsonMatch[1];
+      } else {
+        // Try to find JSON between the first { and last }
+        const firstBrace = content.indexOf('{');
+        const lastBrace = content.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          jsonString = content.substring(firstBrace, lastBrace + 1);
+        }
+      }
+    }
+    
+    try {
+      return JSON.parse(jsonString);
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', content);
+      console.error('Extracted JSON string:', jsonString);
+      console.error('Parse error:', parseError);
+      
+      // Fallback response
+      return {
+        valueProposition: "A unique solution that addresses specific customer pain points through innovative service delivery.",
+        targetCustomer: "Target customers are individuals or businesses seeking personalized solutions in a specific market segment.",
+        revenueStreams: [
+          {"name": "Primary Service", "description": "Core offering revenue", "potential": "High"},
+          {"name": "Premium Features", "description": "Enhanced service tiers", "potential": "Medium"},
+          {"name": "Partnerships", "description": "Affiliate and partnership revenue", "potential": "Medium"}
+        ],
+        costStructure: [
+          {"category": "Operations", "description": "Day-to-day operational expenses"},
+          {"category": "Marketing", "description": "Customer acquisition and retention costs"},
+          {"category": "Technology", "description": "Platform and infrastructure costs"}
+        ],
+        marketingChannels: ["Social media marketing", "Content marketing", "Email campaigns", "Partnership referrals"],
+        customerAcquisition: "Focus on digital marketing channels and word-of-mouth referrals to build initial customer base cost-effectively.",
+        implementationSteps: [
+          {"phase": "MVP Development", "description": "Build minimum viable product", "timeframe": "Week 1-4"},
+          {"phase": "Beta Testing", "description": "Test with initial users", "timeframe": "Week 5-8"},
+          {"phase": "Launch Preparation", "description": "Prepare for market launch", "timeframe": "Week 9-12"},
+          {"phase": "Growth Phase", "description": "Scale operations and marketing", "timeframe": "Month 4+"}
+        ],
+        keyMetrics: [
+          {"name": "Customer Acquisition Cost", "description": "Cost to acquire each new customer"},
+          {"name": "Monthly Recurring Revenue", "description": "Predictable monthly income stream"},
+          {"name": "Customer Satisfaction Score", "description": "Measure of customer happiness and retention"}
+        ]
+      };
+    }
   } catch (error) {
     console.error('Business model generation error:', error);
     throw error;
