@@ -8,13 +8,15 @@ interface GlassmorphismCardProps {
   className?: string;
   gradient?: boolean;
   animate?: boolean;
+  onClick?: () => void;
 }
 
 export const GlassmorphismCard = ({ 
   children, 
   className, 
   gradient = false,
-  animate = true 
+  animate = true,
+  onClick
 }: GlassmorphismCardProps) => {
   const cardContent = (
     <div 
@@ -26,8 +28,10 @@ export const GlassmorphismCard = ({
         "before:absolute before:inset-0 before:rounded-2xl before:p-[1px]",
         "before:bg-gradient-to-r before:from-purple-500/50 before:via-pink-500/50 before:to-cyan-500/50",
         "before:-z-10 hover:before:from-purple-400 hover:before:via-pink-400 hover:before:to-cyan-400",
+        onClick && "cursor-pointer",
         className
       )}
+      onClick={onClick}
     >
       <div className="relative z-10 h-full w-full rounded-2xl bg-slate-900/80 backdrop-blur-xl p-6">
         {children}
