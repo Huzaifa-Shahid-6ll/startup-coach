@@ -15,6 +15,7 @@ interface Message {
   type: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  isHtml?: boolean;
 }
 
 export default function ClarityCoach() {
@@ -39,17 +40,18 @@ export default function ClarityCoach() {
     scrollToBottom();
   }, [messages]);
 
-  const addMessage = (content: string, type: 'user' | 'assistant') => {
+  const addMessage = (content: string, type: 'user' | 'assistant', isHtml = false) => {
     const newMessage: Message = {
       id: Date.now().toString(),
       type,
       content,
-      timestamp: new Date()
+      timestamp: new Date(),
+      isHtml
     };
     setMessages(prev => [...prev, newMessage]);
   };
 
-  const analyzeRoadblocks = async (userMessage: string): Promise<string> => {
+  const analyzeRoadblocks = async (userMessage: string): Promise<{ content: string; isHtml: boolean }> => {
     // Create a specialized prompt for mental roadblock analysis
     const prompt = `As a mental clarity coach for entrepreneurs, analyze this startup founder's mental roadblocks and provide specific, actionable advice:
 
@@ -70,24 +72,97 @@ Keep the response conversational, empathetic, and focused on mental clarity for 
         "Entrepreneurial mindset and determination"
       );
 
-      // Format the response in a more conversational way for mental coaching
-      let response = "I understand what you're going through. Let me help you work through these mental roadblocks:\n\n";
-      
-      response += "**🧠 What I'm hearing:** You're facing some common but significant mental barriers that many entrepreneurs struggle with.\n\n";
-      
-      response += "**💡 Strategies to overcome these roadblocks:**\n";
-      const strategies = plan.weeklyPlan.slice(0, 4).map(day => day.tasks[0]).join('\n• ');
-      response += `• ${strategies}\n\n`;
-      
-      response += `**🎯 One thing to do RIGHT NOW:** ${plan.weeklyPlan[0].tasks[0]}\n\n`;
-      
-      response += `**🌟 Mindset shift:** ${plan.mindsetAdvice}\n\n`;
-      
-      response += `**⚡ Remember:** ${plan.pepTalk}`;
+      // Format the response with proper HTML for better readability
+      let response = `
+        <div class="space-y-4">
+          <div class="flex items-start space-x-2">
+            <span class="text-blue-400">🧠</span>
+            <div>
+              <h4 class="font-semibold text-blue-400 mb-1">What I'm hearing:</h4>
+              <p class="text-gray-100">You're facing some common but significant mental barriers that many entrepreneurs struggle with.</p>
+            </div>
+          </div>
+          
+          <div class="flex items-start space-x-2">
+            <span class="text-green-400">💡</span>
+            <div>
+              <h4 class="font-semibold text-green-400 mb-2">Strategies to overcome these roadblocks:</h4>
+              <ul class="space-y-1 text-gray-100">
+                ${plan.weeklyPlan.slice(0, 4).map(day => `<li class="flex items-start"><span class="text-green-400 mr-2">•</span>${day.tasks[0]}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+          
+          <div class="flex items-start space-x-2">
+            <span class="text-orange-400">🎯</span>
+            <div>
+              <h4 class="font-semibold text-orange-400 mb-1">One thing to do RIGHT NOW:</h4>
+              <p class="text-gray-100">${plan.weeklyPlan[0].tasks[0]}</p>
+            </div>
+          </div>
+          
+          <div class="flex items-start space-x-2">
+            <span class="text-purple-400">🌟</span>
+            <div>
+              <h4 class="font-semibold text-purple-400 mb-1">Mindset shift:</h4>
+              <p class="text-gray-100">${plan.mindsetAdvice}</p>
+            </div>
+          </div>
+          
+          <div class="flex items-start space-x-2">
+            <span class="text-yellow-400">⚡</span>
+            <div>
+              <h4 class="font-semibold text-yellow-400 mb-1">Remember:</h4>
+              <p class="text-gray-100">${plan.pepTalk}</p>
+            </div>
+          </div>
+        </div>
+      `;
 
-      return response;
+      return { content: response, isHtml: true };
     } catch (error) {
-      return "I understand you're facing some mental roadblocks. This is completely normal for entrepreneurs! Here are some strategies that can help:\n\n• **Start small**: Break your big vision into tiny, manageable steps\n• **Challenge limiting beliefs**: Write down your fears and question their validity\n• **Connect with other founders**: Join entrepreneur communities for support\n• **Focus on learning**: View setbacks as valuable learning experiences\n\n**Take action today**: Write down one small step you can take in the next hour toward your startup goal.\n\n**Remember**: Every successful entrepreneur has faced these same doubts. The difference is they moved forward despite the fear. You have what it takes!";
+      const fallbackResponse = `
+        <div class="space-y-4">
+          <div class="flex items-start space-x-2">
+            <span class="text-blue-400">🧠</span>
+            <div>
+              <h4 class="font-semibold text-blue-400 mb-1">I understand</h4>
+              <p class="text-gray-100">You're facing some mental roadblocks. This is completely normal for entrepreneurs!</p>
+            </div>
+          </div>
+          
+          <div class="flex items-start space-x-2">
+            <span class="text-green-400">💡</span>
+            <div>
+              <h4 class="font-semibold text-green-400 mb-2">Here are some strategies that can help:</h4>
+              <ul class="space-y-1 text-gray-100">
+                <li class="flex items-start"><span class="text-green-400 mr-2">•</span>Start small: Break your big vision into tiny, manageable steps</li>
+                <li class="flex items-start"><span class="text-green-400 mr-2">•</span>Challenge limiting beliefs: Write down your fears and question their validity</li>
+                <li class="flex items-start"><span class="text-green-400 mr-2">•</span>Connect with other founders: Join entrepreneur communities for support</li>
+                <li class="flex items-start"><span class="text-green-400 mr-2">•</span>Focus on learning: View setbacks as valuable learning experiences</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="flex items-start space-x-2">
+            <span class="text-orange-400">🎯</span>
+            <div>
+              <h4 class="font-semibold text-orange-400 mb-1">Take action today:</h4>
+              <p class="text-gray-100">Write down one small step you can take in the next hour toward your startup goal.</p>
+            </div>
+          </div>
+          
+          <div class="flex items-start space-x-2">
+            <span class="text-yellow-400">⚡</span>
+            <div>
+              <h4 class="font-semibold text-yellow-400 mb-1">Remember:</h4>
+              <p class="text-gray-100">Every successful entrepreneur has faced these same doubts. The difference is they moved forward despite the fear. You have what it takes!</p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      return { content: fallbackResponse, isHtml: true };
     }
   };
 
@@ -104,7 +179,7 @@ Keep the response conversational, empathetic, and focused on mental clarity for 
       const response = await analyzeRoadblocks(userMessage);
       
       setTimeout(() => {
-        addMessage(response, 'assistant');
+        addMessage(response.content, 'assistant', response.isHtml);
         setLoading(false);
       }, 1500);
 
@@ -203,9 +278,16 @@ Keep the response conversational, empathetic, and focused on mental clarity for 
                             ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                             : 'bg-white/10 border border-white/20 text-gray-100'
                         }`}>
-                          <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                            {message.content}
-                          </div>
+                          {message.isHtml ? (
+                            <div 
+                              className="text-sm leading-relaxed"
+                              dangerouslySetInnerHTML={{ __html: message.content }}
+                            />
+                          ) : (
+                            <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                              {message.content}
+                            </div>
+                          )}
                           <div className={`text-xs mt-2 ${
                             message.type === 'user' ? 'text-blue-100' : 'text-gray-400'
                           }`}>
