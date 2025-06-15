@@ -262,7 +262,48 @@ Provide only the JSON response, no additional text.`;
     });
 
     const content = response.data.choices[0].message.content;
-    return JSON.parse(content);
+    
+    // Extract JSON from markdown code blocks if present
+    let jsonString = content;
+    
+    // Check if the response is wrapped in markdown code blocks
+    if (content.includes('```')) {
+      const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (jsonMatch) {
+        jsonString = jsonMatch[1];
+      } else {
+        // Try to find JSON between the first { and last }
+        const firstBrace = content.indexOf('{');
+        const lastBrace = content.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          jsonString = content.substring(firstBrace, lastBrace + 1);
+        }
+      }
+    }
+    
+    try {
+      return JSON.parse(jsonString);
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', content);
+      console.error('Extracted JSON string:', jsonString);
+      console.error('Parse error:', parseError);
+      
+      // Fallback response
+      return {
+        weeklyPlan: [
+          {"day": "Monday", "tasks": ["Define clear daily goals", "Break down your main objective", "Take the first small step"]},
+          {"day": "Tuesday", "tasks": ["Build on yesterday's progress", "Address one blocking factor", "Document lessons learned"]},
+          {"day": "Wednesday", "tasks": ["Mid-week check-in", "Adjust strategy if needed", "Focus on momentum building"]},
+          {"day": "Thursday", "tasks": ["Leverage your key strengths", "Network or seek support", "Tackle challenging tasks"]},
+          {"day": "Friday", "tasks": ["Review weekly progress", "Plan for next week", "Celebrate small wins"]},
+          {"day": "Saturday", "tasks": ["Reflect on the week", "Prepare for upcoming challenges"]},
+          {"day": "Sunday", "tasks": ["Rest and recharge", "Visualize next week's success"]}
+        ],
+        mindsetAdvice: "Focus on progress, not perfection. Every small step forward is a victory worth celebrating.",
+        productivityTip: "Use the 2-minute rule: if something takes less than 2 minutes, do it immediately.",
+        pepTalk: "You have unique strengths and capabilities. Trust the process and keep moving forward - success is built one day at a time!"
+      };
+    }
   } catch (error) {
     console.error('Clarity plan generation error:', error);
     throw error;
