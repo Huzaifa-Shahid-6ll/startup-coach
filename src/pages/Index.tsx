@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Lightbulb, TrendingUp, Users, DollarSign, Target, BarChart3, Rocket, Brain } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GlassmorphismCard } from '@/components/ui/glassmorphism-card';
 import { GradientButton } from '@/components/ui/gradient-button';
@@ -27,6 +27,8 @@ export default function Index() {
 
   const { user, loading: authLoading, signOut } = useAuth();
   const { saveIdea } = useIdeas();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkApiKey = () => {

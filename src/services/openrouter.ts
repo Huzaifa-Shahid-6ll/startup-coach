@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 
 // Check for API key in both environment variables and localStorage
@@ -172,6 +171,46 @@ export interface ClarityPlanResponse {
   pepTalk: string;
 }
 
+export interface NicheValidationResponse {
+  viabilityScore: number;
+  marketSize: string;
+  demographics: string[];
+  revenueOpportunity: string;
+  pricingStrategies: string[];
+  challenges: string[];
+  entryStrategy: string;
+  competitors: {
+    name: string;
+    description: string;
+    strength: string;
+  }[];
+}
+
+export interface BusinessModelResponse {
+  valueProposition: string;
+  targetCustomer: string;
+  revenueStreams: {
+    name: string;
+    description: string;
+    potential: string;
+  }[];
+  costStructure: {
+    category: string;
+    description: string;
+  }[];
+  marketingChannels: string[];
+  customerAcquisition: string;
+  implementationSteps: {
+    phase: string;
+    description: string;
+    timeframe: string;
+  }[];
+  keyMetrics: {
+    name: string;
+    description: string;
+  }[];
+}
+
 export const generateClarityPlan = async (
   goal: string,
   blocks: string,
@@ -226,6 +265,129 @@ Provide only the JSON response, no additional text.`;
     return JSON.parse(content);
   } catch (error) {
     console.error('Clarity plan generation error:', error);
+    throw error;
+  }
+};
+
+export const validateNiche = async (nicheDescription: string): Promise<NicheValidationResponse> => {
+  const apiKey = getApiKey();
+  
+  if (!apiKey) {
+    throw new Error('OpenRouter API key not configured.');
+  }
+
+  const prompt = `Analyze this niche and provide validation insights in this exact JSON format:
+
+Niche: "${nicheDescription}"
+
+{
+  "viabilityScore": [number from 1-10],
+  "marketSize": "Description of market size and demand in 2-3 sentences",
+  "demographics": ["demographic 1", "demographic 2", "demographic 3", "demographic 4"],
+  "revenueOpportunity": "Description of revenue potential in 2-3 sentences",
+  "pricingStrategies": ["strategy 1", "strategy 2", "strategy 3", "strategy 4"],
+  "challenges": ["challenge 1", "challenge 2", "challenge 3"],
+  "entryStrategy": "Recommended market entry approach in 2-3 sentences",
+  "competitors": [
+    {"name": "Competitor 1", "description": "Brief description", "strength": "Main strength"},
+    {"name": "Competitor 2", "description": "Brief description", "strength": "Main strength"},
+    {"name": "Competitor 3", "description": "Brief description", "strength": "Main strength"}
+  ]
+}
+
+Provide only the JSON response, no additional text.`;
+
+  try {
+    const response = await tryWithModels(FREE_MODELS, {
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a market research expert. Provide detailed niche validation analysis in valid JSON format only.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1500
+    });
+
+    const content = response.data.choices[0].message.content;
+    return JSON.parse(content);
+  } catch (error) {
+    console.error('Niche validation error:', error);
+    throw error;
+  }
+};
+
+export const generateBusinessModel = async (
+  idea: string,
+  budget: string = "",
+  timeline: string = ""
+): Promise<BusinessModelResponse> => {
+  const apiKey = getApiKey();
+  
+  if (!apiKey) {
+    throw new Error('OpenRouter API key not configured.');
+  }
+
+  const prompt = `Create a comprehensive business model for this idea in this exact JSON format:
+
+Business Idea: "${idea}"
+Budget: "${budget}"
+Timeline: "${timeline}"
+
+{
+  "valueProposition": "Clear value proposition in 2-3 sentences",
+  "targetCustomer": "Target customer description in 2-3 sentences",
+  "revenueStreams": [
+    {"name": "Stream 1", "description": "Description", "potential": "High/Medium/Low"},
+    {"name": "Stream 2", "description": "Description", "potential": "High/Medium/Low"},
+    {"name": "Stream 3", "description": "Description", "potential": "High/Medium/Low"}
+  ],
+  "costStructure": [
+    {"category": "Category 1", "description": "Cost description"},
+    {"category": "Category 2", "description": "Cost description"},
+    {"category": "Category 3", "description": "Cost description"}
+  ],
+  "marketingChannels": ["channel 1", "channel 2", "channel 3", "channel 4"],
+  "customerAcquisition": "Customer acquisition strategy in 2-3 sentences",
+  "implementationSteps": [
+    {"phase": "Phase 1", "description": "What to do", "timeframe": "Week 1-2"},
+    {"phase": "Phase 2", "description": "What to do", "timeframe": "Week 3-4"},
+    {"phase": "Phase 3", "description": "What to do", "timeframe": "Month 2"},
+    {"phase": "Phase 4", "description": "What to do", "timeframe": "Month 3+"}
+  ],
+  "keyMetrics": [
+    {"name": "Metric 1", "description": "Why it matters"},
+    {"name": "Metric 2", "description": "Why it matters"},
+    {"name": "Metric 3", "description": "Why it matters"}
+  ]
+}
+
+Provide only the JSON response, no additional text.`;
+
+  try {
+    const response = await tryWithModels(FREE_MODELS, {
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a business strategy expert. Create comprehensive business models in valid JSON format only.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000
+    });
+
+    const content = response.data.choices[0].message.content;
+    return JSON.parse(content);
+  } catch (error) {
+    console.error('Business model generation error:', error);
     throw error;
   }
 };
