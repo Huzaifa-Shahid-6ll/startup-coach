@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 
 export interface SWOT {
@@ -16,29 +17,34 @@ export interface IdeaAnalysisResponse {
   mvp: string;
 }
 
-const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || localStorage.getItem('VITE_OPENROUTER_API_KEY');
-
-const prompt = `
-You are an expert business analyst. Analyze the given idea and provide a detailed response in the exact JSON format requested. Do not include any markdown formatting or code blocks - return only valid JSON.
-
-{
-  "rating": [number from 1-10],
-  "swot": {
-    "strengths": ["strength1", "strength2", "strength3"],
-    "weaknesses": ["weakness1", "weakness2"],
-    "opportunities": ["opportunity1", "opportunity2", "opportunity3"],
-    "threats": ["threat1", "threat2"]
-  },
-  "niches": ["niche1", "niche2", "niche3"],
-  "products": ["product1", "product2", "product3"],
-  "monetization": ["strategy1", "strategy2", "strategy3"],
-  "mvp": "detailed MVP recommendation"
+export interface BusinessModelResponse {
+  executive_summary: string;
+  target_market: string;
+  value_proposition: string;
+  revenue_streams: string[];
+  cost_structure: string[];
+  key_partnerships: string[];
+  competitive_advantage: string;
+  financial_projections: string;
+  implementation_plan: string;
 }
-`;
+
+export interface NicheValidationResponse {
+  market_size: string;
+  competition_level: string;
+  target_audience: string;
+  market_trends: string[];
+  opportunities: string[];
+  challenges: string[];
+  recommendations: string[];
+  viability_score: number;
+}
+
+const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || localStorage.getItem('VITE_OPENROUTER_API_KEY');
 
 export const analyzeIdea = async (idea: string): Promise<IdeaAnalysisResponse> => {
   try {
-    console.log('Making OpenRouter API request:', prompt);
+    console.log('Making OpenRouter API request for idea analysis');
     
     const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
       model: 'anthropic/claude-3.5-sonnet',
@@ -80,13 +86,11 @@ Idea: ${idea}`
     // Extract JSON from markdown code blocks if present
     let jsonString = content;
     
-    // Check if the response is wrapped in markdown code blocks
     if (content.includes('```')) {
       const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
       if (jsonMatch) {
         jsonString = jsonMatch[1];
       } else {
-        // Try to find JSON between the first { and last }
         const firstBrace = content.indexOf('{');
         const lastBrace = content.lastIndexOf('}');
         if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
@@ -102,7 +106,6 @@ Idea: ${idea}`
       console.error('Extracted JSON string:', jsonString);
       console.error('Parse error:', parseError);
       
-      // Instead of placeholder data, throw an error
       throw new Error('Failed to analyze idea. Please try again with a more detailed description.');
     }
   } catch (error) {
@@ -114,18 +117,31 @@ Idea: ${idea}`
   }
 };
 
-export const validateNiche = async (niche: string): Promise<string> => {
+export const validateNiche = async (niche: string): Promise<NicheValidationResponse> => {
   try {
     const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
       model: 'anthropic/claude-3.5-sonnet',
       messages: [
         {
           role: 'system',
-          content: 'You are an expert business analyst. Analyze the given niche and provide a detailed response.'
+          content: 'You are an expert business analyst. Analyze the given niche and provide a detailed response in the exact JSON format requested. Do not include any markdown formatting or code blocks - return only valid JSON.'
         },
         {
           role: 'user',
-          content: `Analyze this niche and provide a detailed response: ${niche}`
+          content: `Analyze this niche and provide a detailed response in this exact JSON format:
+
+{
+  "market_size": "description of market size",
+  "competition_level": "low/medium/high",
+  "target_audience": "description of target audience",
+  "market_trends": ["trend1", "trend2", "trend3"],
+  "opportunities": ["opportunity1", "opportunity2", "opportunity3"],
+  "challenges": ["challenge1", "challenge2", "challenge3"],
+  "recommendations": ["recommendation1", "recommendation2", "recommendation3"],
+  "viability_score": [number from 1-10]
+}
+
+Niche: ${niche}`
         }
       ]
     }, {
@@ -135,25 +151,119 @@ export const validateNiche = async (niche: string): Promise<string> => {
       }
     });
 
-    return response.data.choices[0].message.content;
+    const content = response.data.choices[0].message.content;
+    
+    // Extract JSON from markdown code blocks if present
+    let jsonString = content;
+    
+    if (content.includes('```')) {
+      const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (jsonMatch) {
+        jsonString = jsonMatch[1];
+      } else {
+        const firstBrace = content.indexOf('{');
+        const lastBrace = content.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          jsonString = content.substring(firstBrace, lastBrace + 1);
+        }
+      }
+    }
+    
+    try {
+      return JSON.parse(jsonString);
+    } catch (parseError) {
+      console.error('Failed to parse niche validation response:', content);
+      throw new Error('Failed to validate niche. Please try again.');
+    }
   } catch (error) {
     console.error('Niche validation error:', error);
     throw new Error('Unable to validate niche. Please check your connection and try again.');
   }
 };
 
-export const generateBusinessModel = async (idea: string): Promise<string> => {
+export const generateBusinessModel = async (idea: string): Promise<BusinessModelResponse> => {
   try {
     const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
       model: 'anthropic/claude-3.5-sonnet',
       messages: [
         {
           role: 'system',
-          content: 'You are an expert business analyst. Generate a business model for the given idea and provide a detailed response.'
+          content: 'You are an expert business analyst. Generate a business model for the given idea and provide a detailed response in the exact JSON format requested. Do not include any markdown formatting or code blocks - return only valid JSON.'
         },
         {
           role: 'user',
-          content: `Generate a business model for this idea and provide a detailed response: ${idea}`
+          content: `Generate a business model for this idea and provide a detailed response in this exact JSON format:
+
+{
+  "executive_summary": "brief executive summary",
+  "target_market": "description of target market",
+  "value_proposition": "unique value proposition",
+  "revenue_streams": ["stream1", "stream2", "stream3"],
+  "cost_structure": ["cost1", "cost2", "cost3"],
+  "key_partnerships": ["partnership1", "partnership2", "partnership3"],
+  "competitive_advantage": "description of competitive advantage",
+  "financial_projections": "financial projections overview",
+  "implementation_plan": "step-by-step implementation plan"
+}
+
+Idea: ${idea}`
+        }
+      ]
+    }, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const content = response.data.choices[0].message.content;
+    
+    // Extract JSON from markdown code blocks if present
+    let jsonString = content;
+    
+    if (content.includes('```')) {
+      const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (jsonMatch) {
+        jsonString = jsonMatch[1];
+      } else {
+        const firstBrace = content.indexOf('{');
+        const lastBrace = content.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          jsonString = content.substring(firstBrace, lastBrace + 1);
+        }
+      }
+    }
+    
+    try {
+      return JSON.parse(jsonString);
+    } catch (parseError) {
+      console.error('Failed to parse business model response:', content);
+      throw new Error('Failed to generate business model. Please try again.');
+    }
+  } catch (error) {
+    console.error('Business model generation error:', error);
+    throw new Error('Unable to generate business model. Please check your connection and try again.');
+  }
+};
+
+export const generateClarityPlan = async (currentSituation: string, goals: string, constraints: string): Promise<string> => {
+  try {
+    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+      model: 'anthropic/claude-3.5-sonnet',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert business coach. Provide personalized guidance and a clear action plan based on the user\'s situation, goals, and constraints.'
+        },
+        {
+          role: 'user',
+          content: `Please provide a personalized clarity plan based on:
+
+Current Situation: ${currentSituation}
+Goals: ${goals}
+Constraints: ${constraints}
+
+Please provide actionable advice, specific steps, and recommendations tailored to this situation.`
         }
       ]
     }, {
@@ -165,7 +275,7 @@ export const generateBusinessModel = async (idea: string): Promise<string> => {
 
     return response.data.choices[0].message.content;
   } catch (error) {
-    console.error('Business model generation error:', error);
-    throw new Error('Unable to generate business model. Please check your connection and try again.');
+    console.error('Clarity plan generation error:', error);
+    throw new Error('Unable to generate clarity plan. Please check your connection and try again.');
   }
 };

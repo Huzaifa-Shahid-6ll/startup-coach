@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Lightbulb, TrendingUp, Users, DollarSign, Target, BarChart3, Rocket, Brain, Bookmark, User, Settings } from 'lucide-react';
+import { Sparkles, Lightbulb, TrendingUp, Users, DollarSign, Target, BarChart3, Rocket, Brain, Bookmark, User, Settings, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GlassmorphismCard } from '@/components/ui/glassmorphism-card';
@@ -125,64 +124,9 @@ export default function Index() {
   }
 
   if (!user) {
-    return (
-      <>
-        <GradientBackground />
-        <div className="relative min-h-screen flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl mx-auto"
-          >
-            <h1 className="text-6xl md:text-8xl font-bold gradient-text mb-8 leading-tight">
-              Turn Ideas Into
-              <br />
-              <span className="text-white">Digital Gold</span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-300 mb-12 leading-relaxed">
-              Get instant AI-powered analysis of your business ideas, discover profitable niches,
-              <br />
-              and build your path to digital success.
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
-              {[
-                { icon: Lightbulb, text: "Idea Analysis" },
-                { icon: TrendingUp, text: "Market Insights" },
-                { icon: Users, text: "Niche Discovery" },
-                { icon: DollarSign, text: "Monetization" },
-                { icon: Target, text: "MVP Planning" }
-              ].map((feature, index) => (
-                <motion.div
-                  key={feature.text}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                >
-                  <Badge variant="secondary" className="bg-white/10 text-white border-white/20 px-4 py-2">
-                    <feature.icon className="w-4 h-4 mr-2" />
-                    {feature.text}
-                  </Badge>
-                </motion.div>
-              ))}
-            </div>
-
-            <GradientButton
-              onClick={() => setAuthModalOpen(true)}
-              size="lg"
-              className="px-12 py-6 text-xl"
-            >
-              <Sparkles className="w-6 h-6 mr-3" />
-              Start Analyzing Ideas
-            </GradientButton>
-          </motion.div>
-        </div>
-
-        <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
-      </>
-    );
+    // Redirect to welcome page if not authenticated
+    navigate('/');
+    return null;
   }
 
   if (!hasApiKey) {
@@ -200,9 +144,15 @@ export default function Index() {
               <h1 className="text-4xl md:text-6xl font-bold gradient-text">
                 IdeaForgeAI
               </h1>
-              <GradientButton onClick={() => signOut()}>
-                Sign Out
-              </GradientButton>
+              <div className="flex items-center space-x-4">
+                <GradientButton onClick={() => navigate('/')} variant="secondary">
+                  <Home className="w-4 h-4 mr-2" />
+                  Home
+                </GradientButton>
+                <GradientButton onClick={() => signOut()}>
+                  Sign Out
+                </GradientButton>
+              </div>
             </motion.div>
             <ApiKeySetup onApiKeySet={() => setHasApiKey(true)} />
           </div>
@@ -235,6 +185,10 @@ export default function Index() {
                 />
                 <Target className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
               </div>
+              <GradientButton onClick={() => navigate('/')} variant="secondary">
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </GradientButton>
               <GradientButton onClick={() => signOut()} variant="secondary">
                 <User className="w-4 h-4 mr-2" />
                 Account
