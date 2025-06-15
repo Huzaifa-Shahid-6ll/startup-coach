@@ -1,7 +1,11 @@
 
 import axios from 'axios';
 
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+// Check for API key in both environment variables and localStorage
+const getApiKey = () => {
+  return import.meta.env.VITE_OPENROUTER_API_KEY || localStorage.getItem('VITE_OPENROUTER_API_KEY');
+};
+
 const BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // Free models available on OpenRouter
@@ -12,47 +16,20 @@ const FREE_MODELS = [
   'openchat/openchat-7b:free'
 ];
 
-const openRouterApi = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-    'Content-Type': 'application/json',
-    'HTTP-Referer': window.location.origin,
-    'X-Title': 'IdeaForgeAI - Idea Validation Platform'
-  },
-  timeout: 30000
-});
-
-// Request interceptor
-openRouterApi.interceptors.request.use(
-  (config) => {
-    console.log('Making OpenRouter API request:', config.data?.messages?.[1]?.content?.slice(0, 100) + '...');
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor with retry logic
-openRouterApi.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  async (error) => {
-    console.error('OpenRouter API error:', error.response?.data || error.message);
-    
-    if (error.response?.status === 429) {
-      throw new Error('Rate limit exceeded. Please try again in a moment.');
-    }
-    
-    if (error.response?.status >= 500) {
-      throw new Error('OpenRouter service temporarily unavailable. Please try again.');
-    }
-    
-    throw new Error(error.response?.data?.error?.message || 'Failed to connect to AI service.');
-  }
-);
+const createOpenRouterApi = () => {
+  const apiKey = getApiKey();
+  
+  return axios.create({
+    baseURL: BASE_URL,
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': window.location.origin,
+      'X-Title': 'IdeaForgeAI - Idea Validation Platform'
+    },
+    timeout: 30000
+  });
+};
 
 export interface IdeaAnalysisResponse {
   rating: number;
@@ -69,6 +46,39 @@ export interface IdeaAnalysisResponse {
 }
 
 const tryWithModels = async (models: string[], requestData: any): Promise<any> => {
+  const openRouterApi = createOpenRouterApi();
+  
+  // Add request interceptor
+  openRouterApi.interceptors.request.use(
+    (config) => {
+      console.log('Making OpenRouter API request:', config.data?.messages?.[1]?.content?.slice(0, 100) + '...');
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+
+  // Add response interceptor with retry logic
+  openRouterApi.interceptors.response.use(
+    (response) => {
+      return response;
+    },
+    async (error) => {
+      console.error('OpenRouter API error:', error.response?.data || error.message);
+      
+      if (error.response?.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again in a moment.');
+      }
+      
+      if (error.response?.status >= 500) {
+        throw new Error('OpenRouter service temporarily unavailable. Please try again.');
+      }
+      
+      throw new Error(error.response?.data?.error?.message || 'Failed to connect to AI service.');
+    }
+  );
+
   for (let i = 0; i < models.length; i++) {
     try {
       const response = await openRouterApi.post('', {
@@ -86,8 +96,10 @@ const tryWithModels = async (models: string[], requestData: any): Promise<any> =
 };
 
 export const analyzeIdea = async (ideaDescription: string): Promise<IdeaAnalysisResponse> => {
-  if (!OPENROUTER_API_KEY) {
-    throw new Error('OpenRouter API key not configured. Please set VITE_OPENROUTER_API_KEY in your environment variables.');
+  const apiKey = getApiKey();
+  
+  if (!apiKey) {
+    throw new Error('OpenRouter API key not configured. Please set up your API key using the setup form.');
   }
 
   const prompt = `Analyze this business idea and provide a detailed response in this exact JSON format:
@@ -165,7 +177,9 @@ export const generateClarityPlan = async (
   blocks: string,
   skills: string
 ): Promise<ClarityPlanResponse> => {
-  if (!OPENROUTER_API_KEY) {
+  const apiKey = getApiKey();
+  
+  if (!apiKey) {
     throw new Error('OpenRouter API key not configured.');
   }
 
