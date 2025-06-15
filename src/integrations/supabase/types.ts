@@ -9,7 +9,193 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      business_models: {
+        Row: {
+          created_at: string | null
+          id: string
+          idea_id: string | null
+          monetization_paths: Json | null
+          pricing_tiers: Json | null
+          user_id: string
+          weekend_mvp: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          idea_id?: string | null
+          monetization_paths?: Json | null
+          pricing_tiers?: Json | null
+          user_id: string
+          weekend_mvp?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          idea_id?: string | null
+          monetization_paths?: Json | null
+          pricing_tiers?: Json | null
+          user_id?: string
+          weekend_mvp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_models_idea_id_fkey"
+            columns: ["idea_id"]
+            isOneToOne: false
+            referencedRelation: "ideas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clarity_sessions: {
+        Row: {
+          blocking_factors: string | null
+          created_at: string | null
+          goal: string | null
+          id: string
+          mindset_advice: string | null
+          pep_talk: string | null
+          productivity_tip: string | null
+          skills_assets: string | null
+          user_id: string
+          weekly_plan: Json | null
+        }
+        Insert: {
+          blocking_factors?: string | null
+          created_at?: string | null
+          goal?: string | null
+          id?: string
+          mindset_advice?: string | null
+          pep_talk?: string | null
+          productivity_tip?: string | null
+          skills_assets?: string | null
+          user_id: string
+          weekly_plan?: Json | null
+        }
+        Update: {
+          blocking_factors?: string | null
+          created_at?: string | null
+          goal?: string | null
+          id?: string
+          mindset_advice?: string | null
+          pep_talk?: string | null
+          productivity_tip?: string | null
+          skills_assets?: string | null
+          user_id?: string
+          weekly_plan?: Json | null
+        }
+        Relationships: []
+      }
+      ideas: {
+        Row: {
+          created_at: string | null
+          description: string
+          digital_products: Json | null
+          id: string
+          monetization_paths: Json | null
+          mvp_recommendation: string | null
+          niches: Json | null
+          rating: number | null
+          swot_analysis: Json | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          digital_products?: Json | null
+          id?: string
+          monetization_paths?: Json | null
+          mvp_recommendation?: string | null
+          niches?: Json | null
+          rating?: number | null
+          swot_analysis?: Json | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          digital_products?: Json | null
+          id?: string
+          monetization_paths?: Json | null
+          mvp_recommendation?: string | null
+          niches?: Json | null
+          rating?: number | null
+          swot_analysis?: Json | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      niche_validations: {
+        Row: {
+          created_at: string | null
+          id: string
+          idea_id: string | null
+          micro_products: Json | null
+          profitable_niches: Json | null
+          selling_platforms: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          idea_id?: string | null
+          micro_products?: Json | null
+          profitable_niches?: Json | null
+          selling_platforms?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          idea_id?: string | null
+          micro_products?: Json | null
+          profitable_niches?: Json | null
+          selling_platforms?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "niche_validations_idea_id_fkey"
+            columns: ["idea_id"]
+            isOneToOne: false
+            referencedRelation: "ideas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
