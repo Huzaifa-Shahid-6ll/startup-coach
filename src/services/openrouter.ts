@@ -4,6 +4,14 @@ import axios from 'axios';
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
+// Free models available on OpenRouter
+const FREE_MODELS = [
+  'meta-llama/llama-3.2-3b-instruct:free',
+  'microsoft/phi-3-mini-128k-instruct:free',
+  'huggingface/zephyr-7b-beta:free',
+  'openchat/openchat-7b:free'
+];
+
 const openRouterApi = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -60,6 +68,23 @@ export interface IdeaAnalysisResponse {
   mvp: string;
 }
 
+const tryWithModels = async (models: string[], requestData: any): Promise<any> => {
+  for (let i = 0; i < models.length; i++) {
+    try {
+      const response = await openRouterApi.post('', {
+        ...requestData,
+        model: models[i]
+      });
+      return response;
+    } catch (error: any) {
+      console.warn(`Model ${models[i]} failed:`, error.message);
+      if (i === models.length - 1) {
+        throw error; // If it's the last model, throw the error
+      }
+    }
+  }
+};
+
 export const analyzeIdea = async (ideaDescription: string): Promise<IdeaAnalysisResponse> => {
   if (!OPENROUTER_API_KEY) {
     throw new Error('OpenRouter API key not configured. Please set VITE_OPENROUTER_API_KEY in your environment variables.');
@@ -86,8 +111,7 @@ Idea to analyze: "${ideaDescription}"
 Provide only the JSON response, no additional text.`;
 
   try {
-    const response = await openRouterApi.post('', {
-      model: 'meta-llama/llama-3.2-3b-instruct:free',
+    const response = await tryWithModels(FREE_MODELS, {
       messages: [
         {
           role: 'system',
@@ -169,8 +193,7 @@ Skills/Assets: "${skills}"
 Provide only the JSON response, no additional text.`;
 
   try {
-    const response = await openRouterApi.post('', {
-      model: 'meta-llama/llama-3.2-3b-instruct:free',
+    const response = await tryWithModels(FREE_MODELS, {
       messages: [
         {
           role: 'system',

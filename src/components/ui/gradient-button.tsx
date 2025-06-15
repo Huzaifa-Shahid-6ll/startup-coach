@@ -5,12 +5,13 @@ import { cn } from '@/lib/utils';
 
 interface GradientButtonProps {
   children: ReactNode;
-  onClick?: () => void;
+  onClick?: (e?: React.FormEvent | React.MouseEvent) => void;
   className?: string;
   disabled?: boolean;
   loading?: boolean;
   variant?: 'primary' | 'secondary' | 'success';
   size?: 'sm' | 'md' | 'lg';
+  type?: 'button' | 'submit';
 }
 
 export const GradientButton = ({ 
@@ -20,7 +21,8 @@ export const GradientButton = ({
   disabled = false,
   loading = false,
   variant = 'primary',
-  size = 'md'
+  size = 'md',
+  type = 'button'
 }: GradientButtonProps) => {
   const baseClasses = "relative overflow-hidden font-semibold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed";
   
@@ -38,6 +40,7 @@ export const GradientButton = ({
 
   return (
     <motion.button
+      type={type}
       onClick={onClick}
       disabled={disabled || loading}
       className={cn(baseClasses, sizeClasses[size], variantClasses[variant], className)}

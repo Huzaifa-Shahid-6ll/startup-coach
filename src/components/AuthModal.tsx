@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -138,7 +137,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                 </div>
                 
                 <GradientButton 
-                  onClick={handleSignIn}
+                  type="submit"
                   loading={loading}
                   className="w-full"
                   size="lg"
@@ -198,7 +197,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                 </div>
                 
                 <GradientButton 
-                  onClick={handleSignUp}
+                  type="submit"
                   loading={loading}
                   className="w-full"
                   size="lg"
