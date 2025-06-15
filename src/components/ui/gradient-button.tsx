@@ -33,9 +33,9 @@ export const GradientButton = ({
   };
   
   const variantClasses = {
-    primary: "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg shadow-purple-500/25",
-    secondary: "bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white shadow-lg shadow-pink-500/25",
-    success: "bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-500 hover:to-teal-500 text-white shadow-lg shadow-green-500/25"
+    primary: "bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 text-white shadow-lg shadow-blue-500/25",
+    secondary: "bg-gradient-to-r from-purple-600/80 to-blue-600/80 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg shadow-purple-500/25 border border-white/20",
+    success: "bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/25"
   };
 
   return (
@@ -48,8 +48,8 @@ export const GradientButton = ({
       whileTap={{ scale: 0.95 }}
       transition={{ duration: 0.2 }}
     >
-      {/* Glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-white/0 opacity-0 hover:opacity-100 transition-opacity duration-300" />
+      {/* Enhanced glow effect for startup theme */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-white/20 opacity-0 hover:opacity-100 transition-opacity duration-300" />
       
       {/* Content */}
       <span className="relative z-10 flex items-center justify-center gap-2">

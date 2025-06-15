@@ -3,48 +3,48 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+/* Startup Coach Design System - Dark theme with vibrant gradients */
 
 @layer base {
   :root {
-    --background: 10 10% 4%;
+    --background: 8 8% 3%;
     --foreground: 0 0% 98%;
 
-    --card: 15 15% 8%;
+    --card: 12 12% 6%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 15 15% 8%;
+    --popover: 12 12% 6%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 262 83% 58%;
+    --primary: 240 100% 60%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 217 32% 17%;
+    --secondary: 300 100% 50%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 217 32% 17%;
+    --muted: 220 20% 15%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 217 32% 17%;
+    --accent: 280 100% 70%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 217 32% 17%;
-    --input: 217 32% 17%;
-    --ring: 262 83% 58%;
+    --border: 220 20% 15%;
+    --input: 220 20% 15%;
+    --ring: 240 100% 60%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 10 10% 4%;
+    --sidebar-background: 8 8% 3%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 262 83% 58%;
+    --sidebar-primary: 240 100% 60%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 217 32% 17%;
+    --sidebar-accent: 220 20% 15%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 217 32% 17%;
-    --sidebar-ring: 262 83% 58%;
+    --sidebar-border: 220 20% 15%;
+    --sidebar-ring: 240 100% 60%;
   }
 }
 
@@ -56,7 +56,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    background: #0a0a0a;
+    background: radial-gradient(ellipse at center, #0a0a0f 0%, #050508 100%);
   }
 
   html {
@@ -66,15 +66,19 @@
 
 @layer components {
   .glass-card {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/20;
+    @apply bg-white/3 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/40;
   }
   
   .gradient-text {
-    @apply bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent;
+  }
+  
+  .startup-gradient-text {
+    @apply bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent;
   }
   
   .glow-effect {
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.4), 0 0 60px rgba(139, 92, 246, 0.2);
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.5), 0 0 80px rgba(147, 51, 234, 0.3);
   }
 
   .gradient-border {
@@ -83,88 +87,115 @@
 
   .gradient-border::before {
     content: '';
-    @apply absolute inset-0 rounded-xl p-[1px] bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 -z-10;
+    @apply absolute inset-0 rounded-xl p-[1px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 -z-10;
   }
 
   .floating-gradient {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 50%, rgba(6, 182, 212, 0.1) 100%);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.15) 50%, rgba(236, 72, 153, 0.15) 100%);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
+  .startup-flow-gradient {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(59, 130, 246, 0.2) 30%, rgba(147, 51, 234, 0.2) 70%, rgba(236, 72, 153, 0.2) 100%);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
   .text-glow {
-    text-shadow: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
+    text-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 0 60px rgba(147, 51, 234, 0.4);
   }
 
   .gradient-input {
     @apply bg-white/5 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-gray-400;
-    @apply focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 focus:outline-none;
+    @apply focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 focus:outline-none;
     @apply transition-all duration-300;
   }
 
   .gradient-input:focus {
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
+  }
+
+  .startup-card {
+    @apply bg-gradient-to-br from-white/8 to-white/3 backdrop-blur-xl border border-white/10 rounded-2xl;
+    @apply shadow-2xl shadow-black/40;
+    background-image: 
+      radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(147, 51, 234, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
   }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar with startup theme */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+  background: linear-gradient(135deg, #3B82F6, #9333EA, #EC4899);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #7C3AED, #2563EB);
+  background: linear-gradient(135deg, #2563EB, #7C3AED, #DB2777);
 }
 
-/* Gradient flow animation */
-@keyframes flow {
-  0% { transform: translateX(-100%) skewX(-15deg); }
-  100% { transform: translateX(100%) skewX(-15deg); }
+/* Startup Coach flowing lines animation */
+@keyframes startup-flow {
+  0% { transform: translateX(-100%) skewX(-15deg) scaleY(0.8); }
+  50% { transform: translateX(0%) skewX(-15deg) scaleY(1.2); }
+  100% { transform: translateX(100%) skewX(-15deg) scaleY(0.8); }
 }
 
-.gradient-flow {
+.startup-flow {
   position: relative;
   overflow: hidden;
 }
 
-.gradient-flow::before {
+.startup-flow::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), transparent);
-  animation: flow 3s infinite;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.6), rgba(147, 51, 234, 0.6), rgba(236, 72, 153, 0.6), transparent);
+  animation: startup-flow 4s infinite;
 }
 
-/* Loading shimmer effect */
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+/* Enhanced shimmer for startup theme */
+@keyframes startup-shimmer {
+  0% { transform: translateX(-100%) rotate(-15deg); }
+  100% { transform: translateX(100%) rotate(-15deg); }
 }
 
-.shimmer {
+.startup-shimmer {
   position: relative;
   overflow: hidden;
 }
 
-.shimmer::before {
+.startup-shimmer::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  animation: shimmer 2s infinite;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  animation: startup-shimmer 2.5s infinite;
+}
+
+/* Rocket launch animation */
+@keyframes rocket-launch {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+.rocket-float {
+  animation: rocket-launch 3s ease-in-out infinite;
 }

@@ -21,19 +21,19 @@ export const GlassmorphismCard = ({
   const cardContent = (
     <div 
       className={cn(
-        "relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl",
-        "shadow-2xl shadow-black/20",
-        gradient && "bg-gradient-to-br from-white/10 to-white/5",
-        "hover:bg-white/10 transition-all duration-500",
+        "relative backdrop-blur-xl bg-white/3 border border-white/10 rounded-2xl",
+        "shadow-2xl shadow-black/40",
+        gradient && "startup-card",
+        "hover:bg-white/5 transition-all duration-500",
         "before:absolute before:inset-0 before:rounded-2xl before:p-[1px]",
-        "before:bg-gradient-to-r before:from-purple-500/50 before:via-pink-500/50 before:to-cyan-500/50",
-        "before:-z-10 hover:before:from-purple-400 hover:before:via-pink-400 hover:before:to-cyan-400",
+        "before:bg-gradient-to-r before:from-blue-500/30 before:via-purple-500/30 before:to-pink-500/30",
+        "before:-z-10 hover:before:from-blue-400/50 hover:before:via-purple-400/50 hover:before:to-pink-400/50",
         onClick && "cursor-pointer",
         className
       )}
       onClick={onClick}
     >
-      <div className="relative z-10 h-full w-full rounded-2xl bg-slate-900/80 backdrop-blur-xl p-6">
+      <div className="relative z-10 h-full w-full rounded-2xl bg-slate-950/60 backdrop-blur-xl p-6">
         {children}
       </div>
     </div>
