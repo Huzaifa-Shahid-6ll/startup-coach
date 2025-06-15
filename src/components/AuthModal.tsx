@@ -138,7 +138,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                 </div>
                 
                 <GradientButton 
-                  type="submit" 
+                  onClick={handleSignIn}
                   loading={loading}
                   className="w-full"
                   size="lg"
@@ -198,7 +198,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                 </div>
                 
                 <GradientButton 
-                  type="submit" 
+                  onClick={handleSignUp}
                   loading={loading}
                   className="w-full"
                   size="lg"
