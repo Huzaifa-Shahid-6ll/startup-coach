@@ -1,4 +1,5 @@
-import { ArrowLeft, Home, User, LogOut } from 'lucide-react';
+
+import { ArrowLeft, Home, User, LogOut, DollarSign } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { useAuth } from '@/hooks/useAuth';
@@ -57,6 +58,15 @@ export const Navigation = ({ title, showBack = true }: NavigationProps) => {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Pricing link - visible on all pages */}
+        <button
+          onClick={() => navigate('/pricing')}
+          className="flex items-center gap-2 text-white hover:text-blue-300 transition-colors px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"
+        >
+          <DollarSign className="w-4 h-4" />
+          <span>Pricing</span>
+        </button>
+
         {user && (
           <>
             <div className="text-white text-sm">
