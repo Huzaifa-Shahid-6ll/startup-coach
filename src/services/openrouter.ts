@@ -114,8 +114,9 @@ Provide your response in this exact JSON format:
 
   const systemMessage = 'You are a business analysis expert. Always respond with valid JSON in the exact format requested.';
   
+  const content = await makeApiRequest(prompt, systemMessage, userTier);
+  
   try {
-    const content = await makeApiRequest(prompt, systemMessage, userTier);
     return JSON.parse(content);
   } catch (parseError) {
     console.error('Failed to parse AI response:', content);
@@ -142,8 +143,9 @@ Provide your response in this exact JSON format:
 
   const systemMessage = 'You are a business model expert. Always respond with valid JSON in the exact format requested.';
   
+  const content = await makeApiRequest(prompt, systemMessage, userTier);
+  
   try {
-    const content = await makeApiRequest(prompt, systemMessage, userTier);
     return JSON.parse(content);
   } catch (parseError) {
     console.error('Failed to parse AI response:', content);
@@ -169,8 +171,9 @@ Provide your response in this exact JSON format:
 
   const systemMessage = 'You are a market validation expert. Always respond with valid JSON in the exact format requested.';
   
+  const content = await makeApiRequest(prompt, systemMessage, userTier);
+  
   try {
-    const content = await makeApiRequest(prompt, systemMessage, userTier);
     return JSON.parse(content);
   } catch (parseError) {
     console.error('Failed to parse AI response:', content);
