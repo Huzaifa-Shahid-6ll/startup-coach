@@ -1,4 +1,6 @@
+
 import { z } from 'zod';
+import { getApiKey, getModelForTier, getUserTier, type SubscriptionTier } from '@/utils/apiKeyManager';
 
 const SWOTSchema = z.object({
   strengths: z.string().array(),
@@ -43,20 +45,54 @@ const NicheValidationSchema = z.object({
 
 export type NicheValidationResponse = z.infer<typeof NicheValidationSchema>;
 
-const getApiKey = (): string => {
-  // Check environment variable first, then localStorage
-  const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || localStorage.getItem('VITE_OPENROUTER_API_KEY');
+const makeApiRequest = async (prompt: string, systemMessage: string, userTier?: SubscriptionTier) => {
+  const tier = userTier || getUserTier();
+  const apiKey = getApiKey(tier);
+  const model = getModelForTier(tier);
   
   if (!apiKey) {
-    throw new Error('OpenRouter API key not found. Please set up your API key in the settings.');
+    throw new Error('API key not found. Please configure your API keys in the settings.');
   }
-  
-  return apiKey;
+
+  console.log(`Using ${tier} tier with model: ${model}`);
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          {
+            role: 'system',
+            content: systemMessage
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: tier === 'free' ? 1000 : tier === 'pro' ? 1500 : 2000,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error(`Error with ${tier} tier API:`, error);
+    throw new Error(error instanceof Error ? error.message : `Failed to process request with ${tier} tier.`);
+  }
 };
 
-export const analyzeIdea = async (ideaText: string): Promise<IdeaAnalysisResponse> => {
-  const apiKey = getApiKey();
-  
+export const analyzeIdea = async (ideaText: string, userTier?: SubscriptionTier): Promise<IdeaAnalysisResponse> => {
   const prompt = `Analyze this business idea and provide a comprehensive evaluation:
 
 "${ideaText}"
@@ -76,52 +112,18 @@ Provide your response in this exact JSON format:
   "mvp": "MVP recommendation"
 }`;
 
+  const systemMessage = 'You are a business analysis expert. Always respond with valid JSON in the exact format requested.';
+  
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a business analysis expert. Always respond with valid JSON in the exact format requested.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
-    
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', content);
-      throw new Error('Failed to parse AI response. Please try again.');
-    }
-  } catch (error) {
-    console.error('Error analyzing idea:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to analyze idea. Please try again.');
+    const content = await makeApiRequest(prompt, systemMessage, userTier);
+    return JSON.parse(content);
+  } catch (parseError) {
+    console.error('Failed to parse AI response:', content);
+    throw new Error('Failed to parse AI response. Please try again.');
   }
 };
 
-export const generateBusinessModel = async (ideaText: string): Promise<BusinessModelResponse> => {
-  const apiKey = getApiKey();
-  
+export const generateBusinessModel = async (ideaText: string, userTier?: SubscriptionTier): Promise<BusinessModelResponse> => {
   const prompt = `Create a comprehensive business model for this idea:
 
 "${ideaText}"
@@ -138,52 +140,18 @@ Provide your response in this exact JSON format:
   "key_metrics": ["metric1", "metric2"]
 }`;
 
+  const systemMessage = 'You are a business model expert. Always respond with valid JSON in the exact format requested.';
+  
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a business model expert. Always respond with valid JSON in the exact format requested.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
-    
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', content);
-      throw new Error('Failed to parse AI response. Please try again.');
-    }
-  } catch (error) {
-    console.error('Error generating business model:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to generate business model. Please try again.');
+    const content = await makeApiRequest(prompt, systemMessage, userTier);
+    return JSON.parse(content);
+  } catch (parseError) {
+    console.error('Failed to parse AI response:', content);
+    throw new Error('Failed to parse AI response. Please try again.');
   }
 };
 
-export const validateNiche = async (nicheText: string): Promise<NicheValidationResponse> => {
-  const apiKey = getApiKey();
-  
+export const validateNiche = async (nicheText: string, userTier?: SubscriptionTier): Promise<NicheValidationResponse> => {
   const prompt = `Validate this niche and provide comprehensive analysis:
 
 "${nicheText}"
@@ -199,52 +167,18 @@ Provide your response in this exact JSON format:
   "competitors": ["competitor1", "competitor2"]
 }`;
 
+  const systemMessage = 'You are a market validation expert. Always respond with valid JSON in the exact format requested.';
+  
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a market validation expert. Always respond with valid JSON in the exact format requested.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
-    
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', content);
-      throw new Error('Failed to parse AI response. Please try again.');
-    }
-  } catch (error) {
-    console.error('Error validating niche:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to validate niche. Please try again.');
+    const content = await makeApiRequest(prompt, systemMessage, userTier);
+    return JSON.parse(content);
+  } catch (parseError) {
+    console.error('Failed to parse AI response:', content);
+    throw new Error('Failed to parse AI response. Please try again.');
   }
 };
 
-export const generateClarityPlan = async (goal: string, currentSituation: string, timeframe: string): Promise<string> => {
-  const apiKey = getApiKey();
-  
+export const generateClarityPlan = async (goal: string, currentSituation: string, timeframe: string, userTier?: SubscriptionTier): Promise<string> => {
   const prompt = `As a clarity coach for entrepreneurs, help with this situation:
 
 Goal: ${goal}
@@ -259,38 +193,7 @@ Provide specific, actionable guidance to overcome mental roadblocks and achieve 
 
 Keep the response conversational and encouraging.`;
 
-  try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an empathetic clarity coach specializing in helping entrepreneurs overcome mental roadblocks.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.8,
-        max_tokens: 1500,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
-  } catch (error) {
-    console.error('Error generating clarity plan:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to generate clarity plan. Please try again.');
-  }
+  const systemMessage = 'You are an empathetic clarity coach specializing in helping entrepreneurs overcome mental roadblocks.';
+  
+  return await makeApiRequest(prompt, systemMessage, userTier);
 };
