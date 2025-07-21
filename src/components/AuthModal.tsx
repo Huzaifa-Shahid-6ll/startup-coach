@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Mail, Lock, User } from 'lucide-react';
 import { GradientButton } from '@/components/ui/gradient-button';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthModalProps {
   open: boolean;
@@ -20,6 +21,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const { signIn, signUp } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +37,8 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
           description: "You've been signed in successfully.",
         });
         onOpenChange(false);
+        // Redirect to dashboard after successful sign in
+        navigate('/dashboard');
       }
     } catch (error: any) {
       toast({
@@ -60,6 +64,8 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         description: "Please check your email to verify your account.",
       });
       onOpenChange(false);
+      // Redirect to dashboard after successful sign up
+      navigate('/dashboard');
     } catch (error: any) {
       toast({
         title: "Sign up failed",
