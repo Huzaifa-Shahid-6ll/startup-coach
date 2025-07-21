@@ -9,6 +9,7 @@ import Welcome from "./pages/Welcome";
 import ClarityCoach from "./pages/ClarityCoach";
 import NicheValidation from "./pages/NicheValidation";
 import BusinessModelGenerator from "./pages/BusinessModelGenerator";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/clarity-coach" element={<ClarityCoach />} />
           <Route path="/niche-validation" element={<NicheValidation />} />
           <Route path="/business-model" element={<BusinessModelGenerator />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/auth" element={<Welcome />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
